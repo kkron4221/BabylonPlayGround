@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Collider</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/cannon.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+      const SCALE = 1/50;
+      const FRAME_RATE = 20;
+
+      function createScene() {
+        const scene = new BABYLON.Scene(engine);
+        const camera = new BABYLON.ArcRotateCamera("Camera", - Math.PI / 2, Math.PI / 4, 20, BABYLON.Vector3.Zero(), scene);
+        camera.setTarget(BABYLON.Vector3.Zero());
+        camera.attachControl(canvas, true);
+
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+        light.intensity = 0.7;
+
+        const material_box = new BABYLON.StandardMaterial("material_box", scene);
+        material_box.diffuseColor = new BABYLON.Color3(239/255, 217/255, 193/255);
+
+
+        function addBox() {
+        const box = BABYLON.MeshBuilder.CreateBox("box", { size: 0.01 });
+
+        // const boxL = BABYLON.MeshBuilder.CreateBox("boxL", { width: 5 * SCALE, height: 235 * SCALE, depth: 235 * SCALE });
+        // const boxR = BABYLON.MeshBuilder.CreateBox("boxR", { width: 5 * SCALE, height: 235 * SCALE, depth: 235 * SCALE });
+        // const boxF = BABYLON.MeshBuilder.CreateBox("boxF", { width: 312 * SCALE, height: 235 * SCALE, depth: 5 * SCALE });
+        // const boxB = BABYLON.MeshBuilder.CreateBox("boxB", { width: 312 * SCALE, height: 235 * SCALE, depth: 5 * SCALE });
+        // const boxBottom = BABYLON.MeshBuilder.CreateBox("boxBottom", { width: 312 * SCALE, height: 5 * SCALE, depth: 235 * SCALE });
+
+        const boxTopL = BABYLON.MeshBuilder.CreateBox("boxTopL", { width: 5 * SCALE, height: 235 * SCALE / 2, depth: 235 * SCALE });
+        const boxTopR = BABYLON.MeshBuilder.CreateBox("boxTopR", { width: 5 * SCALE, height: 235 * SCALE / 2, depth: 235 * SCALE });
+        // const boxTopF = BABYLON.MeshBuilder.CreateBox("boxTopF", { width: 312 * SCALE, height: 235 * SCALE / 2, depth: 5 * SCALE });
+        // const boxTopB = BABYLON.MeshBuilder.CreateBox("boxTopB", { width: 312 * SCALE, height: 235 * SCALE / 2, depth: 5 * SCALE });
+
+        // boxL.position.x = -312 * SCALE / 2;
+        // boxR.position.x = 312 * SCALE / 2;
+        // boxF.position.z = 235 * SCALE / 2;
+        // boxB.position.z = -235 * SCALE / 2;
+
+        // boxL.position.y = -235 * SCALE / 2 - 9 * 0;
+        // boxR.position.y = -235 * SCALE / 2 - 9 * 0;
+        // boxF.position.y = -235 * SCALE / 2 - 9 * 0;
+        // boxB.position.y = -235 * SCALE / 2 - 9 * 0;
+        // boxBottom.position.y = -235 * SCALE - 9 * 0;
+
+        // boxL.material = material_box;
+        // boxR.material = material_box;
+        // boxF.material = material_box;
+        // boxB.material = material_box;
+        boxTopL.material = material_box;
+        boxTopR.material = material_box;
+        // boxTopF.material = material_box;
+        // boxTopB.material = material_box;
+        // boxBottom.material = material_box;
+
+        const hingeL = BABYLON.MeshBuilder.CreateBox("hingeL", {}, scene);
+        const hingeR = BABYLON.MeshBuilder.CreateBox("hingeR", {}, scene);
+        // const hingeF = BABYLON.MeshBuilder.CreateBox("hingeF", {}, scene);
+        // const hingeB = BABYLON.MeshBuilder.CreateBox("hingeB", {}, scene);
+
+        hingeL.isVisible = false;
+        hingeR.isVisible = false;
+        // hingeF.isVisible = false;
+        // hingeB.isVisible = false;
+
+        hingeL.position.x = -212 * SCALE / 2;
+        hingeR.position.x =  212 * SCALE / 2;
+        // hingeF.position.z =  235 * SCALE / 2;
+        // hingeB.position.z = -235 * SCALE / 2;
+
+        boxTopL.parent = hingeL;
+        boxTopR.parent = hingeR;
+        // boxTopF.parent = hingeF;
+        // boxTopB.parent = hingeB;
+
+        boxTopL.position.y = 1.1;
+        boxTopR.position.y = 1.1;
+        // boxTopF.position.y = 1.1;
+        // boxTopB.position.y = 1.1;
+
+        // See: https://doc.babylonjs.com/features/featuresDeepDive/animation/sequenceAnimations
+        const hingeL_sweep = new BABYLON.Animation("hingeL_sweep", "rotation.z", FRAME_RATE, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+        const hingeR_sweep = new BABYLON.Animation("hingeR_sweep", "rotation.z", FRAME_RATE, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+        // const hingeF_sweep = new BABYLON.Animation("hingeF_sweep", "rotation.x", FRAME_RATE, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+        // const hingeB_sweep = new BABYLON.Animation("hingeB_sweep", "rotation.x", FRAME_RATE, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+
+        const hingeL_sweep_keys = []; 
+        const hingeR_sweep_keys = []; 
+        // const hingeF_sweep_keys = []; 
+        // const hingeB_sweep_keys = []; 
+
+        hingeL_sweep_keys.push({frame: 0 * FRAME_RATE, value: -Math.PI / 2 * 90 / 90});
+        hingeL_sweep_keys.push({frame: 3 * FRAME_RATE, value: -Math.PI / 2 * 90 / 90});
+        hingeL_sweep_keys.push({frame: 6 * FRAME_RATE, value: +Math.PI / 2 * 45 / 90 });
+
+        hingeR_sweep_keys.push({frame: 0 * FRAME_RATE, value: +Math.PI / 2 * 90 / 90});
+        hingeR_sweep_keys.push({frame: 3 * FRAME_RATE, value: +Math.PI / 2 * 90 / 90});
+        hingeR_sweep_keys.push({frame: 6 * FRAME_RATE, value: -Math.PI / 2 * 45 / 90 });
+
+        // hingeF_sweep_keys.push({frame: 0 * FRAME_RATE, value: -Math.PI / 2 * 90 / 90});
+        // hingeF_sweep_keys.push({frame: 3 * FRAME_RATE, value: +Math.PI / 2 * 45 / 90 });
+
+        // hingeB_sweep_keys.push({frame: 0 * FRAME_RATE, value: +Math.PI / 2 * 90 / 90});
+        // hingeB_sweep_keys.push({frame: 3 * FRAME_RATE, value: -Math.PI / 2 * 45 / 90 });
+
+        hingeL_sweep.setKeys(hingeL_sweep_keys);
+        hingeR_sweep.setKeys(hingeR_sweep_keys);
+        // hingeF_sweep.setKeys(hingeF_sweep_keys);
+        // hingeB_sweep.setKeys(hingeB_sweep_keys);
+
+        scene.beginDirectAnimation(hingeL, [hingeL_sweep], 0, 25 * FRAME_RATE, false);
+        scene.beginDirectAnimation(hingeR, [hingeR_sweep], 0, 25 * FRAME_RATE, false);
+        // scene.beginDirectAnimation(hingeF, [hingeF_sweep], 0, 25 * FRAME_RATE, false);
+        // scene.beginDirectAnimation(hingeB, [hingeB_sweep], 0, 25 * FRAME_RATE, false);
+
+        // boxL.parent = box;
+        // boxR.parent = box;
+        // boxF.parent = box;
+        // boxB.parent = box;
+    }
+
+        addBox();
+    
+        return scene;
+      };
+
+      const scene = createScene();
+
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
