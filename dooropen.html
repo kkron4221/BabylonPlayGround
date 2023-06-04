@@ -28,6 +28,7 @@
 
   </head>
   <body>
+    <button id="playButton">Play</button>
     <canvas id="renderCanvas" touch-action="none"></canvas>
     <script>
       const canvas = document.getElementById("renderCanvas");
@@ -51,6 +52,12 @@
         const material_box = new BABYLON.StandardMaterial("material_box", scene);
         material_box.diffuseColor = new BABYLON.Color3(239/255, 217/255, 193/255);
 
+        const sound = new BABYLON.Sound("opendoor", "./sound/door_open.mp3", scene)
+
+        const playButton = document.getElementById("playButton");
+        playButton.addEventListener("click", function() {
+          sound.play();
+        });
 
         function addBox() {
         const box = BABYLON.MeshBuilder.CreateBox("box", { size: 0.01 });
