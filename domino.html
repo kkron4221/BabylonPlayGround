@@ -25,7 +25,7 @@
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
     <script src="https://cdn.babylonjs.com/cannon.js"></script>
-    <script src="https://cdn.babylonjs.com/oimo.js"></script>
+    <script src="https://cdn.babylonjs.com/Oimo.js"></script>
   </head>
   <body>
     <canvas id="renderCanvas" touch-action="none"></canvas>
@@ -74,11 +74,11 @@
         ground.position.y = -1.5 * DOT_SCALE;
         ground.scaling = new BABYLON.Vector3(20 * DOT_SCALE, 1 * DOT_SCALE, 20 * DOT_SCALE);
         ground.material = matGround;
-        ground.physicsImpostor = new BABYLON.physicsImpostor(ground,
-            BABYLON.PhysicsImpostor.BoxImpostor, {
-                move: false, mass: 0, friction: 1.0, restitution: 1.0
-            }, scene
-        );
+        ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground,
+        BABYLON.PhysicsImpostor.BoxImpostor, {
+            move: false, mass: 0, friction: 1.0, restitution: 1.0
+        }, scene
+    );
 
         const matGold = new BABYLON.PBRMaterial("materialGold", scene);
         matGold.metallic = 1.0;
@@ -97,7 +97,7 @@
         // create and place dominoes
         for (let y = 0; y < 16; y++) {
             for (let x = 0; x < 16; x++) {
-                const domino = BABYLON.MeshBuilder.CretaBox("domino");
+                const domino = BABYLON.MeshBuilder.CreateBox("domino");
                 domino.position = new BABYLON.Vector3((x - 16 / 2) * DOT_SCALE, 0, (y - 16 / 2) * DOT_SCALE);
                 const x1 = 0.2 * DOT_SCALE;
                 const y1 = 1.2 * DOT_SCALE;

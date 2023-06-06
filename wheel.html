@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Hangar</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/cannon.js"></script>
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+      const SCALE = 1/50;
+      const FRAME_RATE = 20;
+
+      function createScene() {
+        const scene = new BABYLON.Scene(engine);
+        const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI, Math.PI, 10, BABYLON.Vector3(180, 0, 180), scene);
+        camera.setTarget(BABYLON.Vector3.Zero());
+        camera.attachControl(canvas, true);
+
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+        light.intensity = 0.7;
+
+        const holder = BABYLON.MeshBuilder.CreateSphere("holder", {diameter: 2, segments: 4}, scene);
+        const wheel = BABYLON.MeshBuilder.CreateSphere("base", {diameterY: 10, diameterZ: 1, diameterX: 10}, scene);
+
+        const box1 = BABYLON.MeshBuilder.CreateBox("tooth1", {width: 4, height: 1, depth: 3}, scene);
+        box1.parent = wheel;
+        box1.position.x = 5;
+
+        const box2 = box1.clone("tooth2");
+        box2.position.x = -5;
+
+        const box3 = box1.clone("tooth3");
+        box3.position.x = 0;
+        box3.position.y = 5;
+        box3.rotation.z = Math.PI / 2;
+
+        box4 = box3.clone("tooth4");
+        box4.position.y = -5;
+
+        const ground1 = BABYLON.MeshBuilder.CreateGround("ground", {width: 50, height: 50}, scene);
+        ground1.position.y = -3.1;
+        ground1.position.x = 25;
+        ground1.position.z = 25;
+        ground1.rotation.z = 0.1;
+        ground1.rotation.x = -0.1;
+
+        const ground2 = BABYLON.MeshBuilder.CreateGround("ground", {width: 50, height: 50}, scene);
+        ground2.position.y = -3.1;
+        ground2.position.x = -25;
+        ground2.position.z = 25;
+        ground2.rotation.z = -0.1;
+        ground2.rotation.x = -0.1;
+
+        const ground3 = BABYLON.MeshBuilder.CreateGround("ground", {width: 50, height: 50}, scene);
+        ground3.position.y = -3.1;
+        ground3.position.x = 25;
+        ground3.position.z = -25;
+        ground3.rotation.z = 0.1;
+        ground3.rotation.x = 0.1;
+
+        const ground4 = BABYLON.MeshBuilder.CreateGround("ground", {width: 50, height: 50}, scene);
+        ground4.position.y = -3.1;
+        ground4.position.x = -25;
+        ground4.position.z = -25;
+        ground4.rotation.z = -0.1;
+        ground4.rotation.x = 0.1;
+        
+        function rand() {
+            const sign = Math.random() < 0.5;
+            return Math.random() * (sign ? 1 : -1);
+        }
+
+        function ballPosition(ball) {
+            ball.position.y = -2;
+            ball.position.x = rand() * 50;
+            ball.position.z = rand() * 50;
+        }
+
+        const ball = BABYLON.MeshBuilder.CreateSphere("ball", {diameter: 2, segments: 4}, scene);
+        ballPosition(ball);
+        const balls = [ball];
+
+        for(let i = 0; i < 99; ++i) {
+            const b = ball.clone("ball" + i);
+            ballPosition(b)
+            balls.push(b);
+        }
+
+        // END of uninteresting part. Here we go with physics!!!
+        const cannon = true;
+        const forceFactor = cannon ? 1 : 1500;
+
+        scene.enablePhysics(undefined, (!cannon ? new BABYLON.OimoJSPlugin(100) : new BABYLON.CannonJSPlugin(true, 100)));
+
+        [box1, box2, box3, box4].forEach((mesh) => {
+            mesh.physicsImpostor = new BABYLON.PhysicsImpostor(mesh, BABYLON.PhysicsImpostor.BoxImpostor, {mass: 0});
+        });
+
+        wheel.physicsImpostor = new BABYLON.PhysicsImpostor(wheel, BABYLON.PhysicsImpostor.SphereImpostor, {mass: 10});
+
+        holder.physicsImpostor = new BABYLON.PhysicsImpostor(holder, BABYLON.PhysicsImpostor.SphereImpostor, {mass: 0});
+
+        const joint1 = new BABYLON.HingeJoint({
+            mainPivot: new BABYLON.Vector3(0, 0, 0),
+            connectedPivot: new BABYLON.Vector3(0, 0, 0),
+            mainAxis: new BABYLON.Vector3(0, 0, -1),
+            connectedAxis: new BABYLON.Vector3(0, 0, -1),
+            nativeParams: {
+
+            }
+        });
+
+        holder.physicsImpostor.addJoint(wheel.physicsImpostor, joint1);
+
+        joint1.setMotor(3 * forceFactor, 20 * forceFactor);
+
+        [ground1, ground2, ground3, ground4].forEach(ground => {
+            ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.BoxImpostor, {mass: 0});
+        });
+
+        balls.forEach(ball => {
+            ball.physicsImpostor = new BABYLON.PhysicsImpostor(ball, BABYLON.PhysicsImpostor.SphereImpostor, {mass: 1});
+        });
+
+        return scene;
+      };
+
+      const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
