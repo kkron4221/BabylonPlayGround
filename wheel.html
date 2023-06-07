@@ -32,6 +32,7 @@
       const canvas = document.getElementById("renderCanvas");
 
       BABYLON.Engine.audioEngineEnabled = true;
+      
 
       const engine = new BABYLON.Engine(canvas, true, null, true);
 
@@ -40,9 +41,11 @@
 
       function createScene() {
         const scene = new BABYLON.Scene(engine);
-        const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI, Math.PI, 10, BABYLON.Vector3(180, 0, 180), scene);
+        const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 45, Math.PI / 45, 35, BABYLON.Vector3(90, 0, 180), scene);
+
         camera.setTarget(BABYLON.Vector3.Zero());
         camera.attachControl(canvas, true);
+        camera.useAutoRotationBehavior = true;
 
         const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
         light.intensity = 0.7;

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Hangar</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/cannon.js"></script>
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+      const BASE_URL = "https://cx20.github.io/gltf-test";
+      const BASE_URL2 = "https://cx20.github.io/webgl-physics-examples";
+      const PHYSICS_SCALE = 1/10;
+
+      const TEXTURE_FLOOR = "textures/floor_bump.png";
+      const TEXTURE_ROCK  = "textures/rockn.png";
+
+      function createScene() {
+        const BASE_URL = "https://cx20.github.io/gltf-test";
+const BASE_URL2 = "https://cx20.github.io/webgl-physics-examples";
+const PHYSICS_SCALE = 1/10;
+
+const TEXTURE_FLOOR = "textures/floor_bump.png";
+const TEXTURE_ROCK  = "textures/rockn.png";
+
+const createScene = function() {
+    const scene = new BABYLON.Scene(engine);
+    scene.enablePhysics(new BABYLON.Vector3(0, -9.8, 0), new BABYLON.HavokPlugin());
+
+    const camera = new BABYLON.ArcRotateCamera("camera", 0, 1.3, 30, BABYLON.Vector3.Zero(), scene);
+    camera.wheelDeltaPercentage = 0.01;
+    camera.setTarget(BABYLON.Vector3.Zero());
+    camera.attachControl(canvas, true);
+
+    const cubeTexture = new BABYLON.CubeTexture(BASE_URL + "/textures/env/papermillSpecularHDR.env", scene);
+    const currentSkybox = scene.createDefaultSkybox(cubeTexture, true);
+
+    const matGround = new BABYLON.PBRMaterial("ground", scene);
+    const ground = BABYLON.Mesh.CreateBox("ground", 80 * PHYSICS_SCALE, scene);
+    ground.position.y = -50 * PHYSICS_SCALE;
+    ground.material = matGround;
+    ground.aggregate = new BABYLON.PhysicsAggregate(ground, BABYLON.PhysicsShapeType.BOX, { mass: 0, friction: 0.4, restitution: 0.6 }, scene);
+
+    let meshes = [];
+
+    const makeCoinMesh = (coinType) => {
+        // Physically Based Materials - Measured BaseColors for metals:
+        // https://docs.unrealengine.com/5.0/en-US/physically-based-materials-in-unreal-engine/
+        const params = {
+            "GOLD":   { metalic:1.0, roughness:0.2, color:[1.000, 0.766, 0.336], texture:TEXTURE_FLOOR, height:0.1, diameter:1.0 },
+            "SILVER": { metalic:1.0, roughness:0.4, color:[0.972, 0.960, 0.915], texture:TEXTURE_ROCK, height:0.075, diameter:0.8 },
+            "COPPER": { metalic:1.0, roughness:0.2, color:[0.955, 0.637, 0.538], texture:TEXTURE_ROCK, height:0.05, diameter:0.6 },
+        };
+
+        const param = params[coinType];
+        const mat = new BABYLON.PBRMaterial("material", scene);
+        mat.metallic = param.metalic;
+        mat.roughness = param.roughness;
+        mat.forceIrradianceInFragment = true;
+        mat.albedoColor = new BABYLON.Color3(param.color[0], param.color[1], param.color[2]);
+        mat.bumpTexture = new BABYLON.Texture(param.texture, scene);
+
+        const faceUV = [];
+        faceUV[0] = new BABYLON.Vector4(0, 0, 1.00, 1);
+        faceUV[1] =	new BABYLON.Vector4(1, 0, 0.32, 1);
+        faceUV[2] = new BABYLON.Vector4(0, 0, 1.00, 1);
+
+        mesh = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height:param.height, diameter:param.diameter, faceUV: faceUV}, scene);
+        mesh.material = mat;
+        return mesh;
+    };
+
+    const generateCondition = [
+        {type:"GOLD", pos:[0, -100, 0], max: 150*3},
+        {type:"SILVER", pos:[0, -100, 0], max: 100*3},
+        {type:"COPPER", pos:[0, -100, 0], max: 50*3}
+    ];
+
+    generateCondition.forEach((cond) => {
+        const mesh = makeCoinMesh(cond.type);
+        mesh.position.x = cond.pos[0];
+        mesh.position.y = cond.pos[1];
+        mesh.position.z = cond.pos[1];
+        for (let i = 0; i < cond.max; i++) {
+            meshes.push( mesh.clone());        
+        }
+    });
+
+    const randomNumber = (min, max) => {
+        if (min == max) {
+            return (min);
+        }
+        const random = Math.random();
+        return ((random * (max - min)) + min);
+    };
+
+    const getNextPosition = (y) => {
+        return new BABYLON.Vector3((randomNumber(-25,25) * PHYSICS_SCALE), (randomNumber(0, 10) + y) * PHYSICS_SCALE, (randomNumber(-25, 25) * PHYSICS_SCALE));
+    };
+
+    meshes.forEach((mesh) => {
+        mesh.parent = null;
+        //mesh.aggregate = new BABYLON.PhysicsAggregate(mesh, BABYLON.PhysicsShapeType.SPHERE, { mass: 1, friction:0.4, restitution:0.8 }, scene);
+        mesh.aggregate = new BABYLON.PhysicsAggregate(mesh, BABYLON.PhysicsShapeType.CYLINDER, { mass: 1, friction:0.4, restitution:0.8 }, scene);
+    });
+
+    scene.onBeforeRenderObservable.add(() => {
+        meshes.forEach((mesh) => {
+            if (mesh.position.y < -50 * PHYSICS_SCALE) {
+/*
+                mesh.position = getNextPosition(50);
+                //mesh.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(0,0,0));
+                //mesh.physicsImpostor.setAngularVelocity(new BABYLON.Vector3(0,0,0));
+                //mesh.aggregate = new BABYLON.PhysicsAggregate(mesh, BABYLON.PhysicsShapeType.SPHERE, { mass: 1, friction:0.4, restitution:0.8 }, scene);
+                mesh.aggregate = new BABYLON.PhysicsAggregate(mesh, BABYLON.PhysicsShapeType.CYLINDER, { mass: 1, friction:0.4, restitution:0.8 }, scene);
+*/
+                // Improved performance by referring to:
+                // https://doc.babylonjs.com/features/featuresDeepDive/physics/perfTips
+
+                const body = mesh.aggregate.body;
+                const pos = getNextPosition(50);
+
+                body.disablePreStep = true;
+                body.transformNode.position.set(pos.x, pos.y, pos.z);
+                body.setLinearVelocity(new BABYLON.Vector3(0,0,0));
+                body.setAngularVelocity(new BABYLON.Vector3(0,0,0));
+
+                body.disablePreStep = false;
+            }
+        });
+        //scene.activeCamera.alpha -= 0.005 * scene.getAnimationRatio();
+    });
+
+    var physicsHelper = new BABYLON.PhysicsHelper(scene);
+
+    var ui = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("ui");
+
+    var panel = new BABYLON.GUI.StackPanel("control-panel");
+    panel.width = "150px";
+    panel.adaptHeightToChildren = true;
+    panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    ui.addControl(panel);
+
+    var radius = 8;
+    var strength = 20;
+
+    // Radial Explosion
+    addButton(panel, "放射状爆発", () => {
+        // Radial explosion impulse/force
+        var origins = [
+            //new BABYLON.Vector3(-8, 6, 0),
+            new BABYLON.Vector3(0, 0, 0),
+        ];
+        for (var i = 0; i < origins.length; i++) {
+            var origin = origins[i];
+
+            setTimeout(function (origin) {
+                var event = physicsHelper.applyRadialExplosionImpulse( // or .applyRadialExplosionForce
+                    origin,
+                    {
+                        radius: radius,
+                        strength: strength,
+                        falloff: BABYLON.PhysicsRadialImpulseFalloff.Linear, // or BABYLON.PhysicsRadialImpulseFalloff.Constant
+                    }
+                );
+
+                var sphere = BABYLON.MeshBuilder.CreateSphere("debug", { diameter: radius * 2 });
+                sphere.position = origin.clone();
+                addMaterialToMesh(sphere);
+
+                setTimeout(() => {
+                    event.dispose();
+                    sphere.dispose();
+                }, 1500);
+                // Debug - END
+            }, i * 2000 + 1000, origin);
+        }
+    });
+
+    // Gravitational field
+    addButton(panel, "重力場", () => {
+        //var gravitationalFieldOrigin = new BABYLON.Vector3(0, 6/2, 10/2);
+        var gravitationalFieldOrigin = new BABYLON.Vector3(0, 6/2, 0);
+        setTimeout(function () {
+            var event = physicsHelper.gravitationalField(
+                gravitationalFieldOrigin,
+                {
+                    radius: radius,
+                    strength: strength,
+                    falloff: BABYLON.PhysicsRadialImpulseFalloff.Linear,
+                }
+            );
+            event.enable();
+
+            var sphere = BABYLON.MeshBuilder.CreateSphere("debug", { diameter: radius * 2 });
+            sphere.position = gravitationalFieldOrigin.clone();
+            addMaterialToMesh(sphere);
+
+            setTimeout(function (sphere) {
+                event.disable();
+                event.dispose(); // we need to cleanup/dispose, after we don't use the data anymore
+                sphere.dispose();
+            }, 3000, sphere);
+            // Debug - END
+        }, 1000);
+    });
+
+
+    // Updraft
+    addButton(panel, "上昇気流", () => {
+        //var updraftOrigin = new BABYLON.Vector3(10, 0, 10);
+        var updraftOrigin = new BABYLON.Vector3(5, 0, 0);
+        setTimeout(function () {
+            var event = physicsHelper.updraft(
+                updraftOrigin,
+                {
+                    radius: 12,
+                    strength: 2,
+                    height: 20,
+                }
+            );
+            event.enable();
+
+            var cylinder = BABYLON.MeshBuilder.CreateCylinder("debug", {
+                height: 20,
+                diameter: 24
+            });
+            cylinder.position = updraftOrigin.add(new BABYLON.Vector3(0, 10, 0));
+            addMaterialToMesh(cylinder);
+
+            setTimeout(function (cylinder) {
+                event.disable();
+                event.dispose(); // we need to cleanup/dispose, after we don't use the data anymore
+                cylinder.dispose();
+            }, 2000, cylinder);
+            // Debug - END
+        }, 1000);
+    });
+
+
+    // Vortex
+    addButton(panel, "渦巻", () => {
+        //var vortexOrigin = new BABYLON.Vector3(0, -8, 8);
+        var vortexOrigin = new BABYLON.Vector3(0, -8, 0);
+        setTimeout(function () {
+            var event = physicsHelper.vortex(
+                vortexOrigin,
+                {
+                    radius: 20/2,
+                    strength: 40/2,
+                    height: 30,
+                }
+            );
+            event.enable();
+
+            var cylinder = BABYLON.MeshBuilder.CreateCylinder("debug", {
+                height: 30,
+                diameter: 40
+            });
+            cylinder.position = vortexOrigin.add(new BABYLON.Vector3(0, 15, 0));
+            addMaterialToMesh(cylinder);
+
+            setTimeout(function (cylinder) {
+                event.disable();
+                event.dispose(); // we need to cleanup/dispose, after we don't use the data anymore
+                cylinder.dispose();
+            }, 10000, cylinder);
+            // Debug - END
+        }, 1000);
+    });
+
+    // Helpers
+    function addMaterialToMesh(sphere) {
+        var sphereMaterial = new BABYLON.StandardMaterial("sphereMaterial", scene);
+        //sphereMaterial.alpha = 0.5;
+        sphereMaterial.alpha = 0.1;
+        sphere.material = sphereMaterial;
+    }
+
+    //addButton(panel, "Restart scene", restartScene);
+
+    return scene;
+};
+
+function addButton(parent, text, fn) {
+    var btn = BABYLON.GUI.Button.CreateSimpleButton("btn", text);
+    btn.width = "100%";
+    btn.height = "40px";
+    btn.background = "green";
+    btn.color = "white";
+    btn.onPointerClickObservable.add(fn);
+    parent.addControl(btn);
+}
+
+        return scene;
+      };
+
+      const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
