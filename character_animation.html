@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Character Animation</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+    function createScene() {
+        var scene = new BABYLON.Scene(engine);
+
+        scene.debugLayer.show({
+            embedMode:true
+        });
+
+        var camera = new BABYLON.ArcRotateCamera("camera", BABYLON.Tools.ToRadians(90), BABYLON.Tools.ToRadians(65), 115, new BABYLON.Vector3(0, 16.5, 0), scene);
+        // This attaches the camera to the canvas
+        camera.attachControl(canvas, true);
+
+        // This creates a light, aiming 0,1,0 - to the sky (non-mesh) 
+        var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+        
+        // Default intensity is 1. Let's dim the light a small amount
+        light.intensity = 0.7;
+
+        BABYLON.SceneLoader.Append("https://assets.babylonjs.com/meshes/Yeti/MayaExport/glTF/", "Yeti.gltf", scene, function(newMeshes){
+            scene.debugLayer.show({embedMode:true});
+            var yetiBody = scene.getMeshByName("YetiBody_low");
+            scene.debugLayer.select(yetiBody);
+            var boneWeightShader = BABYLON.Debug.SkeletonViewer.CreateBoneWeightShader({skeleton:yetiBody});
+            boneWeightShader.setFloat("targetBoneIndex", 4);
+            yetiBody.material = boneWeightShader;
+
+            var viewer = new BABYLON.Debug.SkeletonViewer(yetiBody.skeleton, yetiBody, scene, false, 3, {
+                displayMode: BABYLON.Debug.SkeletonViewer.DISPLAY_SPHERE_AND_SPURS
+            });
+            viewer.isEnabled = true;
+
+        });
+
+        return scene;
+
+    };
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
