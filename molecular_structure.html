@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Molecular Structure</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+      BABYLON.Vector3.prototype.rotateAboutAxisThroughPoint = function(axis, point, angle) {
+        var _p = new BABYLON.Quaternion(this.x - point.x, this.y - point.y, this.z - point.z, 0);
+        var qinv = BABYLON.Quaternion.Inverse(q);
+        var _pdash = q.multiply(_p).multiply(qinv);
+        return new BABYLON.Vector3(_pdash.x + point.x, _pdash.y + point.y, _pdash.z + point.z);
+      }
+    function createScene() {
+        var scene = new BABYLON.Scene(engine);
+        var camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI/2, Math.PI / 2, 200, BABYLON.Vector3.Zero(), scene);
+        camera.attachControl(canvas, true);
+
+        var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
+        light.intensity = 0.2;
+        var pl = new BABYLON.PointLight('pl', camera.position, scene);
+        pl.intensity = 0.3;
+
+        // Base Particle
+        var particleRadius = 3;
+        var sphere = BABYLON.MeshBuilder.CreateSphere('sphere', {diameter: 2 * particleRadius, })
+ 
+        var particleMaxSpeed = 0.5; //distance per frame
+        var particleMaxAngular = 0.025; //rotation per frame
+
+        var spaceSize = 100;
+        
+        var ground = BABYLON.MeshBuilder.CreateGround("ground", {width:spaceSize, height:spaceSize}, scene);
+        ground.position.y = -spaceSize/2;
+
+        var wallLeft = ground.clone("wallLeft");
+        wallLeft.rotation.z = -Math.PI/2;
+        wallLeft.position.x = - spaceSize/2;
+        wallLeft.position.y = 0;
+
+        var wallRight = ground.clone("wallRight");
+        wallRight.rotation.z = Math.PI/2;
+        wallRight.position.x = spaceSize/2;
+        wallRight.position.y = 0;
+
+        var wallFront = ground.clone("wallBack");
+        wallFront.rotation.x = Math.PI/2;
+        wallFront.position.z = -spaceSize/2;
+        wallFront.position.y = 0;
+
+        var wallBack = ground.clone("wallBack");
+        wallBack.rotation.x = -Math.PI/2;
+        wallBack.position.z = spaceSize/2;
+        wallBack.position.y = 0;
+
+        var roof = ground.clone("roof");
+        roof.rotation.x = Math.PI;
+        roof.position.y = spaceSize/2;
+
+        var leftNorm = new BABYLON.Vector3(1, 0, 0);
+        var leftPosition = new BABYLON.Vector3(-spaceSzie/2, 0, 0);
+
+        var rightNorm = new BABYLON.Vector3(-1, 0, 0);
+        var rightPosition = new BABYLON.Vector3(spaceSize/2, 0, 0);
+
+        var frontNorm = new BABYLON.Vector3(0, 0, 1);
+        var frontPosition = new BABYLON.Vector3(0, 0, -spaceSize/2);
+
+        var backNorm = new BABYLON.Vector3(0, 0, -1);
+        var backPosition = new BABYLON.Vector3(0, 0, spaceSize/2);
+
+        var groundNorm = new BABYLON.Vector3(0, 1, 0);
+        var groundPosition = new BABYLON.Vector3(0, -spaceSize/2, 0);
+
+        var roofNorm = new BABYLON.Vector3(0, -1, 0);
+        var roofPosition = new BABYLON.Vector3(0, spaceSize/2, 0);
+        
+        var groundNorm = new BABYLON.Vector3(0, 1, 0);
+        var groundPosition = new BABYLON.Vector3(0, -spaceSize/2, 0);
+
+        var roofNorm = new BABYLON.Vector3(0, -1, 0);
+        var roofPosition = new BABYLON.Vector3(0, -spaceSize/2, 0);
+
+        var offsets = [];
+        offsets[0] = new BABYLON.Vector3(1, 0, 0);
+        offsets[1] = new BABYLON.Vector3(-1, 0, 0);
+        offsets[2] = new BABYLON.Vector3(0, 1, 0);
+        offsets[3] = new BABYLON.Vector3(0, -1, 0);
+        offsets[4] = new BABYLON.Vector3(0, 0, 1);
+        offsets[5] = new BABYLON.Vector3(0, 0, -1);
+
+        // Particle System
+        var spheresPerShapeNb = 5;
+        var particleNb = spheresPerShapeNb * 30;
+        var SPS = new BABYLON.SolidParticlesSystem('SPS', scene);
+        SPS.addShape(sphere, particleNb);
+        sphere.dispose();
+        var mesh = SPS.buildMesh();
+        var innerSpace = spaceSize - 2 * spheresPerShapeNb * particleRadius;
+
+        // SPS initialization
+        SPS.initParticles = function() {
+          for (var p = 0; p < SPS.nbParticles; p+=spheresPerShapeNb) {
+            var x = innerSpace * Math.random();
+            var y = innerSpace * Math.random();
+            var z = innerSpace * Math.random();
+            SPS.particles[p].position = new BABYLON.Vector3(x - innerSpace/2, y - innerSpace/2,)
+          }
+        }
+    };  
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
