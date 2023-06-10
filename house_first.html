@@ -99,7 +99,7 @@
             }
 
             for(var w = 0; w < nbWalls; w++) {
-              indices.push(w, w + 2 * nbWalls, (w + 1) % nbWalls + 2 * nbWalls, w, (w + 1) % nbWalls); //inner wall indices
+              indices.push(w, w + 2 *nbWalls, (w + 1) % nbWalls + 2*nbWalls, w, (w + 1) % nbWalls + 2*nbWalls, (w + 1) % nbWalls); // inner wall indices
               indices.push((w + 1) % nbWalls + 3 * nbWalls, w + 3 * nbWalls, w + nbWalls, (w + 1) % nbWalls + nbWalls, (w + 1) % nbWalls + 3 * nbWalls, w + nbWalls); //outer wall indices
             }
 
@@ -147,7 +147,7 @@
         return scene;
     };
 
-        const scene = createScene();
+      const scene = createScene();
 
       engine.runRenderLoop(function () {
         scene.render();
