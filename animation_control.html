@@ -58,32 +58,32 @@
         // Positioning box
         box2.position.x = 20;
 
-        // Create a scaling animation
-        var animation1 = new BABYLON.Animation("tutoAnimation", "scaling.x", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, 
-            BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        // // Create a scaling animation
+        // var animation1 = new BABYLON.Animation("tutoAnimation", "scaling.x", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, 
+        //     BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
 
-        // Animation keys
-        var keys = [];
-        // At the animation key 0, the value of scaling is "1"
-        keys.push({
-            frame: 0,
-            value: 1
-        });
+        // // Animation keys
+        // var keys = [];
+        // // At the animation key 0, the value of scaling is "1"
+        // keys.push({
+        //     frame: 0,
+        //     value: 1
+        // });
 
-        // At the animation key 20, the value of scaling is "0.2"
-        keys.push({
-            frame: 20,
-            value: 0.2
-        });
+        // // At the animation key 20, the value of scaling is "0.2"
+        // keys.push({
+        //     frame: 20,
+        //     value: 0.2
+        // });
 
-        // At the animation key 100, the value of scaling is "1"
-        keys.push({
-            frame: 100,
-            value: 1
-        });
+        // // At the animation key 100, the value of scaling is "1"
+        // keys.push({
+        //     frame: 100,
+        //     value: 1
+        // });
 
-        // Adding keys to the animation object
-        animation1.setKeys(keys);
+        // // Adding keys to the animation object
+        // animation1.setKeys(keys);
 
         // Create a second rotation animation with different timeline
         var animation2 = new BABYLON.Animation("tutoAnimation", "rotation.y", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
@@ -110,7 +110,7 @@
 
         // Create the animation group
         var animationGroup = new BABYLON.AnimationGroup("my group");
-        animationGroup.addTargetedAnimation(animation1, box1);
+        // animationGroup.addTargetedAnimation(animation1, box1);
         animationGroup.addTargetedAnimation(animation2, box1);
 
         // Make sure to normalize animations to the same timeline
