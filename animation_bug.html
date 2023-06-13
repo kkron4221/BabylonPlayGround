@@ -56,41 +56,34 @@
         ]
 
         const importResult = BABYLON.SceneLoader.ImportMeshAsync(
-            "",
-            "https://raw.githubusercontent.com/RaggarDK/Baby/baby/",
-            "arr.babylon",
-            scene,
-            undefined
-        );
+          "",
+          "https://raw.githubusercontent.com/RaggarDK/Baby/baby/",
+          "arr.babylon",
+          scene,
+          undefined
+        ).then((importResult) => {
+          const mesh = importResult.meshes[0];
+          const baker = new BABYLON.VertexAnimationBaker(scene, mesh);
 
-        const mesh = importResult.meshes[0];
-        const baker = new BABYLON.VertexAnimationBaker(scene, mesh);
-
-        baker.bakeVertexData([{from:0, to: animationRanges[animationRanges.length - 1].to, name: "My animation"}]).then((vertexData) => {
-            const vertexTexture = baker.textureFromBakedVertexData(vertexData);
-
-            const manager = new BABYLON.BakedVertexAnimationManager(scene);
-
-            manager.texture = vertexTexture;
-            manager.animationParameters = new BABYLON.Vector4(
-                animationRanges[0].from,
-                animationRanges[0].to,
-                0,
-                30
-            );
-
-            mesh.BakedVertexAnimationManager = manager;
-
-            scene.registerBeforeRender(() => {
-                manager.time += engine.getDeltaTime() / 1000.0;
-            });
+          return baker.bakeVertexData(ranges);}).then((vertexData) => {
+          const vertexTexture = baker.textureFromBakedVertexData(vertexData);
+          const manager = new BABYLON.BakedVertexAnimationManager(scene);
+          manager.texture = vertexTexture;
+          manager.animationParameters = new BABYLON.Vector4(
+            animationRanges[0].from,
+            animationRanges[0].to,
+            0,
+            30
+          );
+          mesh.BakedVertexAnimationManager = manager;
+          scene.registerBeforeRender(() => {
+            manager.time += engine.getDeltaTime() / 1000.0;
+          });
         });
-
         return scene;
-    };
+      };
 
-        const scene = createScene();
-
+      const scene = createScene();
       engine.runRenderLoop(function () {
         scene.render();
       });
@@ -98,6 +91,7 @@
       window.addEventListener("resize", function () {
         engine.resize();
       });
+    
     </script>
   </body>
 </html>
