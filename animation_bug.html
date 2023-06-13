@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Particle Frame</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+    function createScene() {
+        var scene = new BABYLON.Scene(engine);
+        
+        var camera = new BABYLON.FreeCamera("camera1", new  BABYLON.Vector3(0, 5, 10), scene);
+
+        camera.setTarget(BABYLON.Vector3.Zero());
+
+        camera.attachControl(canvas, true);
+
+        var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+
+        light.intensity = 2;
+
+        const animationRanges = [
+            { from: 7, to: 31 },
+            { from: 33, to: 61 },
+            { from: 63, to: 91 },
+            { from: 93, to: 130 }
+        ]
+
+        const importResult = BABYLON.SceneLoader.ImportMeshAsync(
+            "",
+            "https://raw.githubusercontent.com/RaggarDK/Baby/baby/",
+            "arr.babylon",
+            scene,
+            undefined
+        );
+
+        const mesh = importResult.meshes[0];
+        const baker = new BABYLON.VertexAnimationBaker(scene, mesh);
+
+        baker.bakeVertexData([{from:0, to: animationRanges[animationRanges.length - 1].to, name: "My animation"}]).then((vertexData) => {
+            const vertexTexture = baker.textureFromBakedVertexData(vertexData);
+
+            const manager = new BABYLON.BakedVertexAnimationManager(scene);
+
+            manager.texture = vertexTexture;
+            manager.animationParameters = new BABYLON.Vector4(
+                animationRanges[0].from,
+                animationRanges[0].to,
+                0,
+                30
+            );
+
+            mesh.BakedVertexAnimationManager = manager;
+
+            scene.registerBeforeRender(() => {
+                manager.time += engine.getDeltaTime() / 1000.0;
+            });
+        });
+
+        return scene;
+    };
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
