@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Particle Frame</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+    function createScene() {
+        // This creates a basic Babylon Scene objecet (non-mesh)
+        var scene = new BABYLON.Scene(engine);
+
+        // Async loading list
+        var promises = [];
+
+        // This creates and positions a free camera (non-mesh)
+        var camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", BABYLON.Tools.ToRadians(-270), BABYLON.Tools.ToRadians(90), 10, new BABYLON.Vector3(0, 0, 0), scene);
+
+        // This attaches the camera to the canvas
+        camera.attachControl(canvas, true);
+        scene.clearColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+
+        // DirectX format normal texture in node material
+        var directXMat = new BABYLON.NodeMaterial("directXMat", scene, { emitComments: false });
+        // DirectX format normal texture in node material with inverted V in UVs
+        var directX_invMat = new BABYLON.NodeMaterial("directX_invMat", scene, { emitComments: false });
+
+        // Lights
+        var dirLight1 = new BABYLON.DirectionalLight("dirLight1", new BABYLON.Vector3(0, 0, 0), scene);
+        dirLight1.direction = new BABYLON.Vector3(0.5, -0.75, -0.4);
+        dirLight1.intensity = 1.0;
+
+        // Load assets
+        promises.push(BABYLON.SceneLoader.AppendAsync("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/forum/normalFormat/normalFormatTest.glb"));
+        promises.push(BABYLON.SceneLoader.AppendAsync("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/forum/normalFormat/normalFormatTest.babylon"));
+        promises.push(directXMat.loadAsync("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/forum/normalFormat/directXnodeMat.json"));
+        promises.push(directX_invMat.loadAsync("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/forum/normalFormat/directXNode_InvertY_Mat.json"));
+
+        // Callback when assets are loaded
+        Promise.all(promises).then(function() {
+            // Mesh
+            var directXMesh = scene.getMeshByName("directX");
+            var babylonDXMesh = scene.getMeshByName("directX1_babylon");
+
+            // Build and assign node materials
+            directX_invMat.build(true);
+            directXMat.build(true);
+            directXMesh.material = directXMat;
+            babylonDXMesh.material = directX_invMat;
+
+            // display loading screen while loading assets
+            engine.displayLoadingUI();
+            scene.executeWhenReady(function() {
+                engine.hideLoadingUI();
+            });
+        });
+
+        scene.debugLayer.show();
+
+        return scene;
+
+    };
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
