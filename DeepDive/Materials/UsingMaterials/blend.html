@@ -54,7 +54,7 @@
 
         // Creation of a repeated textured material
         var materialPlane = new BABYLON.StandardMaterial("texturePlane", scene);
-        materialPlane.diffuseTexture - new BABYLON.Texture("textures/grass.jpg", scene);
+        materialPlane.diffuseTexture = new BABYLON.Texture("../textures/grass.jpg", scene);
         materialPlane.diffuseTexture.uScale = 5.0; //Repeat 5 times on the Vertical Axes
         materialPlane.diffuseTexture.vScale = 5.0; //Repeat 5 times on the Horizontal Axes
         materialPlane.backFaceCulling = false; //Allways show the front and the back of element
@@ -63,7 +63,7 @@
 
         // materials
         var material_base = new BABYLON.StandardMaterial("mat", scene);
-        material_base.diffuseTexture = new BABYLON.Texture("textures/misc.jpg", scene);
+        material_base.diffuseTexture = new BABYLON.Texture("../textures/misc.jpg", scene);
         material_base.alpha = 0.9999; // artificially set the material as alpha blended
         material_base.ambientColor = BABYLON.Color3.White();
 
@@ -83,7 +83,7 @@
         for (var i = 0; i < count; i++) {
             // angle = Math.PI * 2 * i / count;
             // mesh = BABYLON.Mesh.CreateBox("cube" + i, 12, scene);
-            mesh = BABYLON.Mesh.CreatCylinder("aaa", 12, 8, 8, 12, 1, scene);
+            mesh = BABYLON.Mesh.CreateCylinder("aaa", 12, 8, 8, 12, 1, scene);
             mesh.position.x = -17 * (i + 0.5 - count/2);
             // mesh.rotation.y = Math.PI * 2 - angle;
             mesh.rotation.y = 8;
