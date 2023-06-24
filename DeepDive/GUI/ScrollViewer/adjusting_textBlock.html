@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Particle Frame</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+    function createScene() {
+
+        var scene = new BABYLON.Scene(engine);
+
+        var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -10), scene);
+
+        camera.setTarget(BABYLON.Vector3.Zero());
+
+        camera.attachControl(canvas, true);
+
+        var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
+
+        light.intensity = 0.7;
+
+        var sphere = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
+
+        sphere.position.y = 1;
+
+        var ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, scene);
+
+        var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+        var sv = new BABYLON.GUI.ScrollViewer();
+        sv.thickness = 7;
+        sv.color = "green";
+        sv.width = 0.4;
+        sv.height = 0.4;
+        sv.background = "black";
+
+        advancedTexture.addControl(sv);
+
+        var tb = new BABYLON.GUI.TextBlock();
+        tb.textWrapping = BABYLON.GUI.TextWrapping.WordWrap;
+        tb.resizeToFit = true;
+        tb.paddingTob = "5%";
+        tb.paddingLeft = "30px";
+        tb.paddingRight = "20px";
+        tb.paddingBottom = "5%";
+        tb.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        tb.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+        tb.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        tb.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+        tb.color = "red";
+        tb.background = "yellow";
+
+        tb.text = "TEXT START Lorem ipsum dolor sit amet, postea petentium et eum. " +
+    "An cum inani conclusionemque, et viris noluisse pri. Sint erat te pro, falli " +
+    "civibus ei qui. Unum labore platonem ne pro, wisi inani volumus mel at, sea ea " +
+    "nostrud molestie. Nullam alterum ex est, quas timeam habemus sed an. Has an eius " +
+    "timeam, choro adolescens vix in.\n\n" +
+    "Sea homero aliquando an, case philosophia interpretaris ex cum. Hinc eius " +
+    "zril ex duo. Erroribus urbanitas mel te. Vis praesent assueverit te, agam " +
+    "propriae vix ex. Diam alterum aliquando eu sed. Ea nam ubique antiopam, usu " +
+    "alia albucius in, vix quis congue accusata ut.  TEXT END";
+
+    tb.fontSize = "32px";
+
+    sv.addControl(tb);
+
+    return scene;
+
+
+
+        
+    };
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
