@@ -52,16 +52,27 @@
         const sphere_down = BABYLON.MeshBuilder.CreateSphere("sphere_down", {});
         sphere_down.position.x = -2;
 
-        const change_direction = BABYLON.MeshBuilder.CreateBox("box", {});
-        change_direction.position.x = -2
+        const sphere_front = BABYLON.MeshBuilder.CreateSphere("sphere_front", {});
+        sphere_front.position.x = -2;
+        sphere_front.position.y = -2;
+
+        const change_direction_down = BABYLON.MeshBuilder.CreateBox("box", {});
+        change_direction_down.position.x = -2
+
+        const change_direction_front = BABYLON.MeshBuilder.CreateBox("front", {});
+        change_direction_front.position.x = -2
+        change_direction_front.position.y = -2
+
 
         const frameRate = 10;
 
         const xSlide = new BABYLON.Animation("xSlide", "position.x", frameRate, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
         const ySlide = new BABYLON.Animation("ySlide", "position.y", frameRate, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        const zSlide = new BABYLON.Animation("zSlide", "position.z", frameRate, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
 
         const keyFrames_slide = []; 
         const keyFrames_down = [];
+        const keyFrames_front = [];
 
         keyFrames_slide.push({
             frame: 0,
@@ -82,17 +93,31 @@
             frame: frameRate,
             value: -2
         })
+
+        keyFrames_front.push({
+          frame: 0,
+          value: -2
+        })
+
+        keyFrames_front.push({
+          frame: frameRate,
+          value: -4
+        })
         
 
         xSlide.setKeys(keyFrames_slide);
         ySlide.setKeys(keyFrames_down);
+        zSlide.setKeys(keyFrames_front);
 
         sphere_slide.animations.push(xSlide);
         sphere_down.animations.push(ySlide);
+        sphere_front.animations.push(zSlide);
 
 
         scene.beginAnimation(sphere_slide, 0, 2 * frameRate, false, 1, function() {
-            scene.beginAnimation(sphere_down, 0, 2 * frameRate, false, 1);
+            scene.beginAnimation(sphere_down, 0, 2 * frameRate, false, 1, function() {
+              scene.beginAnimation(sphere_front, 0, 2 * frameRate, false);
+            });
         });
 
         return scene;
