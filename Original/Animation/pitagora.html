@@ -51,10 +51,15 @@
 
         const sphere_down = BABYLON.MeshBuilder.CreateSphere("sphere_down", {});
         sphere_down.position.x = -2;
+        sphere_down.material = new BABYLON.StandardMaterial("material", scene);
+        sphere_down.material.diffuseColor = new BABYLON.Color3(0, 1, 0);
 
         const sphere_front = BABYLON.MeshBuilder.CreateSphere("sphere_front", {});
         sphere_front.position.x = -2;
         sphere_front.position.y = -2;
+        sphere_front.position.z = 0;
+        sphere_front.material = new BABYLON.StandardMaterial("material", scene);
+        sphere_front.material.diffuseColor = new BABYLON.Color3(1, 0, 0);
 
         const change_direction_down = BABYLON.MeshBuilder.CreateBox("box", {});
         change_direction_down.position.x = -2
@@ -96,12 +101,12 @@
 
         keyFrames_front.push({
           frame: 0,
-          value: -2
+          value: 0
         })
 
         keyFrames_front.push({
           frame: frameRate,
-          value: -4
+          value: -2
         })
         
 
@@ -112,7 +117,6 @@
         sphere_slide.animations.push(xSlide);
         sphere_down.animations.push(ySlide);
         sphere_front.animations.push(zSlide);
-
 
         scene.beginAnimation(sphere_slide, 0, 2 * frameRate, false, 1, function() {
             scene.beginAnimation(sphere_down, 0, 2 * frameRate, false, 1, function() {
