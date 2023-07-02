@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Particle Frame</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+      function createScene() {
+        var scene = new BABYLON.Scene(engine);
+        var camera = new BABYLON.ArcRotateCamera("Camera", Math.PI, Math.PI / 6, 30, new BABYLON.Vector3(0, -15, 0), scene);    camera.attachControl(canvas, false);
+        camera.setTarget(BABYLON.Vector3.Zero());
+        camera.attachControl(canvas, true);
+
+        scene.enablePhysics(new BABYLON.Vector3(0,-9.81,0), new BABYLON.AmmoJSPlugin());
+
+        var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+        light.intensity = 0.7;
+
+        Promise.all([
+            BABYLON.SceneLoader.AppendAsync("https://models.babylonjs.com/Marble/marble/marble.gltf"),
+            BABYLON.SceneLoader.AppendAsync("https://models.babylonjs.com/Marble/marbleTower/marbleTower.gltf"),
+            BABYLON.SceneLoader.AppendAsync("https://rawcdn.githack.com/cx20/jsdo-static-contents/57257854053724aaa0bdfc0b806e38650cbf02b0/models/gltf/2.0/CardboardBox/glTF-Binary/CardboardBox.glb")
+        ]).then(function () {
+            var marble = scene.getMeshByName("marble");
+            //marble.setParent(null);
+            //marble.position.y = 10;
+
+            var tower = scene.getMeshByName("tower");
+            var rockerBottom = scene.getMeshByName("rockerBottom");
+            var rockerTop = scene.getMeshByName("rockerTop");
+            var spinner = scene.getMeshByName("spinner");
+            var supports = scene.getMeshByName("supports");
+            var track = scene.getMeshByName("track");
+            var wheel = scene.getMeshByName("wheel");
+            var rockerPinMesh = scene.getMeshByName("rockerPin");
+
+            let redMat = scene.getMaterialByName("redMat")
+            let blueMat = scene.getMaterialByName("blueMat")
+
+            var cardboardBoxA = scene.getMeshByName("cardboardBox");
+            var cardboardBoxB = cardboardBoxA.clone("cardboardBox");
+            cardboardBoxA.setParent(null);
+            cardboardBoxB.setParent(null);
+
+            rockerBottom.setParent(null);
+            rockerTop.setParent(null);
+
+            tower.dispose();
+            spinner.dispose();
+            supports.dispose();
+            track.dispose();
+            wheel.dispose();
+            rockerPinMesh.dispose();
+
+            //setup the rocker
+
+            // Create rocker pin as the phsyics root and parent loaded assets to it
+            var rockerRoot = new BABYLON.Mesh("rockerRoot", scene);
+            rockerBottom.setParent(rockerRoot);
+            rockerTop.setParent(rockerRoot);
+            rockerRoot.position = new BABYLON.Vector3(0, 0, 0);
+            rockerRoot.rotation.x -= BABYLON.Tools.ToRadians(25);
+
+            rockerTop.physicsImpostor = new BABYLON.PhysicsImpostor(rockerTop, BABYLON.PhysicsImpostor.ConvexHullImpostor, { mass: 0 }, scene);
+            rockerBottom.physicsImpostor = new BABYLON.PhysicsImpostor(rockerBottom, BABYLON.PhysicsImpostor.ConvexHullImpostor, { mass: 0 }, scene);
+            rockerRoot.physicsImpostor = new BABYLON.PhysicsImpostor(rockerRoot, BABYLON.PhysicsImpostor.NoImpostor,{mass:2},scene);
+
+            cardboardBoxA.position.x = 0;
+            cardboardBoxA.position.y = -3;
+            cardboardBoxA.position.z = -5;
+            cardboardBoxA.physicsImpostor = new BABYLON.PhysicsImpostor(cardboardBoxA, BABYLON.PhysicsImpostor.MeshImpostor, { mass: 0 }, scene);
+
+            cardboardBoxB.position.x = 0;
+            cardboardBoxB.position.y = -3;
+            cardboardBoxB.position.z = +5;
+            cardboardBoxB.physicsImpostor = new BABYLON.PhysicsImpostor(cardboardBoxB, BABYLON.PhysicsImpostor.MeshImpostor, { mass: 0 }, scene);
+
+            var rockerPin = BABYLON.MeshBuilder.CreateCylinder("Rocker", {diameter:0.10, height: 1}, scene);
+            rockerPin.rotation.z += BABYLON.Tools.ToRadians(90);
+            rockerPin.position = new BABYLON.Vector3(0, 0, 0);
+            rockerPin.physicsImpostor = new BABYLON.PhysicsImpostor(rockerPin, BABYLON.PhysicsImpostor.MeshImpostor,{mass:0},scene);
+
+            var joint1 = new BABYLON.HingeJoint({  
+                mainPivot: new BABYLON.Vector3(0, 0, 0),
+                connectedPivot: new BABYLON.Vector3(0, 0, 0),
+                mainAxis: new BABYLON.Vector3(-1, 0, 0),
+                connectedAxis: new BABYLON.Vector3(0, 1, 0),
+                nativeParams: {
+                }
+            });
+            rockerRoot.physicsImpostor.addJoint(rockerPin.physicsImpostor, joint1);
+
+            const box = BABYLON.MeshBuilder.CreateBox("box", {height: 0.1, width: 2, depth: 5});
+            box.position.y = -1;
+            box.physicsImpostor = new BABYLON.PhysicsImpostor(box, BABYLON.PhysicsImpostor.BoxImpostor, {mass:0}, scene);
+            
+
+            var ballCount = 0;
+            var maxBalls = 300;
+
+            var elapsed = 0;
+
+            var balls = [];
+
+            // create a new ball every 3 seconds
+            scene.onBeforeRenderObservable.add(() => {
+                elapsed += scene.getEngine().getDeltaTime();
+                if (elapsed >= 1500 && ballCount < maxBalls) {
+                    let ball = marble.clone();
+                    ball.material = ballCount % 2 ? redMat : blueMat;
+                    ball.setParent(null);
+                    ball.position = new BABYLON.Vector3(0, 10, 0);
+                    ball.physicsImpostor = new BABYLON.PhysicsImpostor(ball, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 1, friction:0.4, restitution:0.8 }, scene);
+                    balls.push(ball);
+                    ballCount++;
+                    elapsed = 0;
+                }
+            });
+
+            scene.registerBeforeRender(function () {
+                balls.forEach((ball) => {
+                    if (ball.position.y < -100) {
+                        ball.position.y = 10;
+                        ball.position.x = 0;
+                        ball.position.z = 0;
+                        ball.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(0, 0, 0));
+                        ball.physicsImpostor.setAngularVelocity(new BABYLON.Vector3(0, 0, 0));
+                    }
+                });
+            });
+
+        });
+
+
+        return scene;
+    };
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
