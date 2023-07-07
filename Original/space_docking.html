@@ -45,13 +45,16 @@
 
         var box = BABYLON.MeshBuilder.CreateBox("space_body");
 
+        var sphere = BABYLON.MeshBuilder.CreateSphere("space_top");
+        sphere.position.y = 25.5;
+
         var animationTorus = new BABYLON.Animation("torusEasingAnimation", "position", 30, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
 
         var nextPos = box.position.add(new BABYLON.Vector3(-80, 0, 0));
 
         var keysTorus = [];
         keysTorus.push({ frame: 0, value: box.position });
-        keysTorus.push({ frame: 120, value: nextPos });
+        keysTorus.push({ frame: 240, value: nextPos });
         animationTorus.setKeys(keysTorus);
 
         var easingFunction = new BABYLON.CircleEase();
@@ -62,7 +65,7 @@
 
         box.animations.push(animationTorus);
 
-        scene.beginAnimation(box, 0, 120, true);
+        scene.beginAnimation(box, 0, 120, false);
 
         return scene;
     };
