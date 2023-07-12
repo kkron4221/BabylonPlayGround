@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Particle Frame</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+    function createScene() {
+        var scene = new BABYLON.Scene(engine);
+        scene.gravity = new BABYLON.Vector3(0, -0.5, 0);
+        scene.collisionsEnabled = true;
+
+        var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 2.5, -6), scene);
+        camera.setTarget(BABYLON.Vector3.Zero());
+        camera.attachControl(canvas, true);
+        setupCameraForCollisions(camera);
+
+        var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
+        light.intensity = 0.7;
+        var sphere = BABYLON.Mesh.CreateSphere("sphere1", 16, 1, scene);
+        sphere.position.y = 1.25;
+
+        const ground1 = new BABYLON.Mesh.CreateGround('ground1', 20, 14, 16, scene);
+        ground1.position.y = 0;
+        ground1.checkCollisions = true;
+
+        var box = BABYLON.Mesh.CreateBox("create", 2, scene);
+        box.material = new BABYLON.StandardMaterial("Mat", scene);
+        box.material.diffuseTexture = new BABYLON.Texture("textures/create.png", scene);
+        box.material.diffuseTexture.hasAlpha = true;
+        box.position = new BABYLON.Vector3(5, 1, 5);
+        box.checkCollisions = true;
+
+        const xr = await scene.createDefaultXRExperienceAsync({
+            floorMeshes: [ground1],
+            disableTeleportation: true
+        });
+
+    };
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>

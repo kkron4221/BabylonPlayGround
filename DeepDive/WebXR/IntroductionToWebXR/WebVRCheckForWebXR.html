@@ -61,7 +61,7 @@
 
         scene.onBeforeRenderObservable.add(()=>{
             sphere.rotation.y += 0.0001*scene.getEngine().getDeltaTime();
-            sphere.rotation.x += 0.0001*scene.getEngine().getDeltaTime();
+            // sphere.rotation.x += 0.0001*scene.getEngine().getDeltaTime();
         })
 
         var plane = BABYLON.Mesh.CreatePlane("plane", 1);
