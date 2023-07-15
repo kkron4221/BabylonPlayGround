@@ -43,7 +43,7 @@
         var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
         light.intensity = 0.7;
 
-        var environment = scene.cretaeDefaultEnvironment({ enableGroundShadow: true });
+        var environment = scene.createDefaultEnvironment({ enableGroundShadow: true });
         environment.setMainColor(BABYLON.Color3.FromHexString("#74b9ff"));
         environment.ground.parent.position.y = 0;
         environment.ground.position.y = 0
@@ -66,11 +66,14 @@
         var Box_Right_Trigger = BABYLON.MeshBuilder.CreateBox("Box_Right_Trigger", {}, scene);
         Box_Right_Trigger.position = new BABYLON.Vector3(2.5, 1, 3);
 
+        var Box_Right_Squeeze = BABYLON.MeshBuilder.CreateBox("Box_Right_Squeeze", {}, scene);
+        Box_Right_Squeeze.position = new BABYLON.Vector3(2.5, -1, 3);
+
         var Sphere_Right_BButton = BABYLON.MeshBuilder.CreateSphere("Sphere_Right_BButton", {diameter:1}, scene);
         Sphere_Right_BButton.position = new BABYLON.Vector3(2, 0, 3);
 
         var Sphere_Right_AButton = BABYLON.MeshBuilder.CreateSphere("Sphere_Right_AButton", {diameter:1}, scene);
-        Sphere_Left_AButton.position = new BABYLON.Vector3(2, 0, 2);
+        Sphere_Right_AButton.position = new BABYLON.Vector3(2, 0, 2);
 
         var Box_Right_ThumbStick = BABYLON.MeshBuilder.CreateBox("Box_Right_ThumbStick", {size:0.5}, scene);
         Box_Right_ThumbStick.position = new BABYLON.Vector3(1, 0, 1);
@@ -81,7 +84,108 @@
           });
         }
 
-        
+        xr.input.onControllerAddedObservable.add((controller) => {
+          controller.onMotionControllerInitObservable.add((motionController) => {
+            if (motionController.handness === 'left'){
+              const xr_ids = motionController.getComponentIds();
+              let triggerComponent = motionController.getComponent(xr_ids[0]);
+              triggerComponent.onButtonStateChangedObservable.add(() => {
+                if(triggerComponent.pressed) {
+                  Box_Left_Trigger.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
+                }else{
+                  Box_Left_Trigger.scaling = new BABYLON.Vector3(1, 1, 1);
+                }
+              });
+              let squeezeComponent = motionController.getComponent(xr_ids[1]);
+              squeezeComponent.onButtonStateChangedObservable.add(() => {
+                if (triggerComponent.pressed) {
+                  Box_Left_Squeeze.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
+                }else{
+                  Box_Left_Squeeze.scaling = new BABYLON.Vector3(1, 1, 1);
+                }
+              });
+              let thumbstickComponent = motionController.getComponent(xr_ids[2]);
+              thumbstickComponent.onButtonStateChangedObservable.add(() => {
+                if (thumbstickComponent.pressed) {
+                  Box_Left_ThumbStick.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
+                }else{
+                  Box_Left_ThumbStick.scaling = new BABYLON.Vector3(1, 1, 1);
+                }
+              });
+
+              thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
+
+              });
+
+              let xbuttonComponent = motionController.getComponent(xr_ids[3]);
+              xbuttonComponent.onButtonStateChangedObservable.add(() => {
+                if (xbuttonComponent.pressed) {
+                  Sphere_Left_XButton.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
+                }else{
+                  Sphere_Left_XButton.scaling = new BABYLON.Vector3(1, 1, 1);
+                }
+              });
+              let ybuttonComponent = motionController.getComponent(xr_ids[4]);
+              ybuttonComponent.onButtonStateChangedObservable.add(() => {
+                if (ybuttonComponent.pressed) {
+                  Sphere_Left_YButton.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
+                }else{
+                  Sphere_Left_YButton.scaling = new BABYLON.Vector3(1, 1, 1);
+                }
+              });
+            }
+            if (motionController.handness === 'right') {
+              const xr_ids = motionController.getComponentIds();
+              let triggerComponent = motionController.getComponent(xr_ids[0]);
+              triggerComponent.onButtonStateChangedObservable.add(() => {
+                if (triggerComponent.pressed) {
+                  Box_Right_Trigger.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
+                }else{
+                  Box_Right_Trigger.scaling = new BABYLON.Vector3(1, 1, 1);
+                }
+              });
+              let squeezeComponent = motionController.getComponent(xr_ids[1]);
+              squeezeComponent.onButtonStateChangedObservable.add(() => {
+                if (triggerComponent.pressed) {
+                  Box_Right_Squeeze.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
+                }else{
+                  Box_Right_Squeeze.scaling = new BABYLON.Vector3(1, 1, 1);
+                }
+              });
+              let thumbstickComponent = motionController.getComponent(xr_ids[2]);
+              thumbstickComponent.onButtonStateChangedObservable.add(() => {
+                if (thumbstickComponent.pressed) {
+                  Box_Right_ThumbStick.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
+                }else{
+                  Box_Right_ThumbStick.scaling = new BABYLON.Vector3(1, 1, 1);
+                }
+              });
+              thumbstickComponent.onAxisValueChangedObservable.add((axes) => {
+                
+              });
+
+              let abuttonComponent = motionController.getComponent(xr_ids[3]);
+              abuttonComponent.onButtonStateChangedObservable.add(() => {
+                if (abuttonComponent.pressed) {
+                  Sphere_Right_AButton.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
+                }else{
+                  Sphere_Right_AButton.scaling = new BABYLON.Vector3(1, 1, 1);
+                }
+              });
+              let bbuttonComponent = motionController.getComponent(xr_ids[4]);
+              bbuttonComponent.onButtonStateChangedObservable.add(() => {
+                if (bbuttonComponent.pressed) {
+                  Sphere_Right_BButton.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
+                }else{
+                  Sphere_Right_BButton.scaling = new BABYLON.Vector3(1, 1, 1);
+                }
+              });
+
+            }
+          });
+
+          return scene;
+        })
 
     };
 
