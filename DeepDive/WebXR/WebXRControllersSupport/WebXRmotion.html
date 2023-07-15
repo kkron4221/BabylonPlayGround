@@ -52,6 +52,37 @@
         Box_Left_Trigger.position = new BABYLON.Vector3(-2.5, 1, 3);
 
         var Box_Left_Squeeze = BABYLON.MeshBuilder.CreateBox("Box_Left_Squeeze", {}, scene);
+        Box_Left_Squeeze.position = new BABYLON.Vector3(-2.5, -1, 3);
+
+        var Sphere_Left_YButton = BABYLON.MeshBuilder.CreateSphere("Sphere_Left_YButton", {diameter:1}, scene);
+        Sphere_Left_YButton.position = new BABYLON.Vector3(-2, 0, 3);
+
+        var Sphere_Left_XButton = BABYLON.MeshBuilder.CreateSphere("Sphere_Left_XButton", {diameter:1}, scene);
+        Sphere_Left_XButton.position = new BABYLON.Vector3(-2, 0, 2);
+
+        var Box_Left_ThumbStick = BABYLON.MeshBuilder.CreateBox("Box_Left_ThumbStick", {size:0.5}, scene);
+        Box_Left_ThumbStick.position = new BABYLON.Vector3(-1, 0, 1);
+
+        var Box_Right_Trigger = BABYLON.MeshBuilder.CreateBox("Box_Right_Trigger", {}, scene);
+        Box_Right_Trigger.position = new BABYLON.Vector3(2.5, 1, 3);
+
+        var Sphere_Right_BButton = BABYLON.MeshBuilder.CreateSphere("Sphere_Right_BButton", {diameter:1}, scene);
+        Sphere_Right_BButton.position = new BABYLON.Vector3(2, 0, 3);
+
+        var Sphere_Right_AButton = BABYLON.MeshBuilder.CreateSphere("Sphere_Right_AButton", {diameter:1}, scene);
+        Sphere_Left_AButton.position = new BABYLON.Vector3(2, 0, 2);
+
+        var Box_Right_ThumbStick = BABYLON.MeshBuilder.CreateBox("Box_Right_ThumbStick", {size:0.5}, scene);
+        Box_Right_ThumbStick.position = new BABYLON.Vector3(1, 0, 1);
+
+        async function xr(){
+          var xr = await scene.createDefaultXRExperienceAsync({
+
+          });
+        }
+
+        
+
     };
 
         const scene = createScene();
