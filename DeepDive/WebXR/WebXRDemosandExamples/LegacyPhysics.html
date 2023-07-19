@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Particle Frame</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+    async function createScene() {
+        var scene = new BABYLON.Scene(engine);
+        const gravityVector = new BABYLON.Vector3(0, -9.8, 0);
+        const physicsPlugin = new BABYLON.CannonJSPlugin();
+        scene.enablePhysics(gravityVector, physicsPlugin);
+
+        var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 10, 80), scene);
+        camera.setTarget(new BABYLON.Vector3(0, 10, 400));
+        camera.attachControl(canvas, true);
+
+        var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+        light.intensity = 0.7;
+
+        var environment = scene.createDefaultEnvironment({ createGround: false, skyboxSize: 1000 });
+        environment.setMainColor(BABYLON.Color3.FromHexString("#74b9ff"));
+
+        var ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 1000, height: 1000 }, scene);
+        ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, friction: 0.8, restitution: 0.5, disableBidirectionalTransformation: true }, scene);
+        ground.checkCollisions = true;
+        ground.material = new BABYLON.GridMaterial("mat", scene);
+
+        var towerMeshes = [];
+        for (var x = 0; x < 7; x++){
+            for (var z = 0; z < 7; z++){
+                var box1 = BABYLON.MeshBuilder.CreateBox("towerBox",
+                    { width: 2, height: 2, depth: 2 }, scene);
+                box1.position.x = (x - 4) * 6;
+                box1.position.y = 2 + z * 2;
+                box1.position.z = 100;
+                box1.physicsImpostor = new BABYLON.PhysicsImpostor(box1, BABYLON.PhysicsImpostor.BoxImpostor,
+                    { mass: 1, friction: 0.5, restitution: 0 }, scene);
+                towerMeshes.push(box1);
+            }
+        }
+
+        var materialAmiga = new BABYLON.StandardMaterial("amiga", scene);
+        materialAmiga.diffuseTexture = new BABYLON.Texture("/textures/amiga.jpg", scene);
+        materialAmiga.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+        materialAmiga.diffuseTexture.uScale = 5;
+        materialAmiga.diffuseTexture.vScale = 5;
+
+        var y = 0;
+        for (var index = 0; index < 20; index++){
+            var sphere = BABYLON.Mesh.CreateSphere("Sphere0", 16, 1, scene);
+            sphere.material = materialAmiga;
+            sphere.position = new BABYLON.Vector3(Math.random() * 20 - 10, y, (Math.random() * 10 - 5) + 80);
+            sphere.physicsImpostor = new BABYLON.PhysicsImpostor(sphere, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 1, restitution: 0.8 }, scene);
+            y += 2;
+        }
+    };
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
