@@ -84,7 +84,85 @@
             sphere.physicsImpostor = new BABYLON.PhysicsImpostor(sphere, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 1, restitution: 0.8 }, scene);
             y += 2;
         }
+
+        // Link
+        var spheres = [];
+        for (index = 0; index < 10; index++) {
+          sphere = BABYLON.Mesh.CreateSphere("Sphere0", 16, 0.8, scene);
+          spheres.push(sphere);
+          sphere.material = materialAmiga;
+          sphere.position = new BABYLON.Vector3(Math.random() * 20 - 10, 100, (Math.random() * 10 - 5 + 70));
+
+          sphere.physicsImpostor = new BABYLON.PhysicsImpostor(sphere, BABYLON.PhysicsImpostor.SphereImpostor, { mass:1 }, scene);
+
+        }
+
+        for (index = 0; index < 9; index++) {
+          spheres[index].setPhysicsLinkWith(spheres[index + 1], new BABYLON.Vector3(0, 0.5, 0), new BABYLON.Vector3(0, -0.5, 0));
+        }
+
+        // boxing area
+        const base = BABYLON.MeshBuilder.CreateBox('base', { width: 5, depth: 5, height: 0.1 });
+        base.position.set(0, 0, 90);
+        base.physicsImpostor = new BABYLON.PhysicsImpostor(base,
+          BABYLON.PhysicsImpostor.BoxImpostor,
+          { mass: 1000, friction: 0.5, restitution: 0 }, scene
+        );
+
+        const boxingArray = [[], [], []]
+        const positions = [
+          new BABYLON.Vector3(0, 2.6, 90),
+          new BABYLON.Vector3(0, 2.3, 90),
+          new BABYLON.Vector3(0, 2.0, 90),
+          new BABYLON.Vector3(0, 1.7, 90),
+          new BABYLON.Vector3(0, 1.4, 90),
+        ];
+
+        let xPose = 0;
+        for (let i = -1; i < 2; ++i){
+          positions.forEach((position, idx) => {
+            const boxingSphere = BABYLON.MeshBuilder.CreateSphere('boxing_impostor', { diameter: 0.2 }, scene);
+            boxingSphere.position.copyForm(position);
+            boxingSphere.position.x = i;
+            boxingSphere.physicsImpostor = new BABYLON.PhysicsImpostor(boxingSphere, BABYLON.PhysicsImpostor.SphereImpostor, { mass: idx === 0 ? 0 : 1.1 + i }, scene);
+            boxingArray[i + 1].push(boxingSphere);
+
+            if (idx === 0) return;
+            const lockJoint = new BABYLON.PhysicsJoint(BABYLON.PhysicsJoint.lockJoint, {})
+            boxingArray[i + 1][idx - 1].physicsImpostor.addJoint(boxingSphere.physicsImpostor, lockJoint);
+          });
+        }
+
+        // enable xr
+        const xr = await scene.createDefaultEnvironment({
+          floorMeshes: [ground]
+        });
+
+        // enable physics
+        const xrPhysics = xr.baseExperience.featuresManager.enableFeature(BABYLON.WebXRFeatureName.PHYSICS_CONTROLLERS, "latest", {
+          xrInput: xr.input,
+          physicsProperties: {
+            restitution: 0.5,
+            impostorSize: 0.1,
+            impostorType: BABYLON.PhysicsImpostor.BoxImpostor
+          },
+          enableHeadsetImpostor: true
+        });
+
+        let observers = {};
+        let meshesUnderPointer = {};
+        const tmpVec = new BABYLON.Vector3();
+        const tmpRay = new BABYLON.Ray();
+        tmpRay.origin = new BABYLON.Vector3();
+        tmpRay.direction = new BABYLON.Vector3();
+        let lastTimestamp = 0;
+        const oldPos = new BABYLON.Vector3();
+
+        const bullets = [];
+
+        
     };
+
 
         const scene = createScene();
 
