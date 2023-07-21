@@ -160,7 +160,70 @@
 
         const bullets = [];
 
-        
+        // show how to use babylon's native pointer events to interact with the input source
+        scene.onPointerObservable.add((event) => {
+          if (event.type === BABYLON.PointerEventTypes.POINTERPICK) {
+            const inputSource = xr.pointerSelection.getXRControllerByPointerId(event.event.pointerId);
+            if (!inputSource || (inputSource && inputSource.motionController.handness === 'right' )){
+              const bullet = BABYLON.MeshBuilder.CreateSphere('bullet', { diameter: 0.2 });
+
+              const ray = event.pickInfo.ray;
+              ray.direction.scaleInPlace(0.2);
+              bullet.position.copyForm(ray.origin);
+              bullet.position.addInPlace(ray.direction);
+              bullet.physicsImpostor = new BABYLON.PhysicsImpostor(bullet, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 3 });
+              bullet.physicsImpostor.setLinearVelocity(ray.direction.scale(400));
+            }
+          }
+        })
+
+        xr.input.onControllerAddedObservable.add((controller) => {
+          controller.onMotionControllerInitObservable.add((motionController) => {
+            if (motionController.handness === 'left') {
+              motionController.getMainComponent().onButtonStateChangedObservable.add((component) => {
+                if (component.changes.pressed) {
+                  if (component.pressed) {
+                    for (var x = 0; x < 7; x++) {
+                      for (var z = 0; z < 7; z++) {
+                        const box1 = towerMeshes[x * 7 + z]
+                        box1.position.x = (x - 4) * 6;
+                        box1.position.y = 2 + z * 2;
+                        box1.position.z = 100;
+                        box1.rotationQuaternion = new BABYLON.Quaternion();
+                        box1.physicsImpostor.setLinearVelocity(BABYLON.Vector3.Zero());
+                        box1.physicsImpostor.setAngularVelocity(BABYLON.Vector3.Zero());
+                      }
+                    }
+                    let bullt;
+                    while (bullt = bullets.pop()) {
+                      bullt.dispose();
+                    }
+                    Object.keys(observers).forEach(id => {
+                      xr.baseExperience.sessionManager.onXRFrameObservable.remove(observers[id]);
+                      observers[id] = null;
+                    });
+                  }
+                }
+              });
+
+              const squeeze = motionController.getComponentOfType('squeeze');
+              if (squeeze) {
+                squeeze.onButtonStateChangedObservable.add(() => {
+                  if (squeeze.changes.pressed) {
+                    if (squeeze.pressed){
+                      controller.getWorldPointerRayToRef(tmpRay, true);
+                      tmpRay.direction.scaleInPlace(1.5);
+                      const position = controller.grip ? controller.grip.position : controller.pointer.position;
+
+                      let mesh = scene.meshUnderPointer;
+                      if 
+                    }
+                  }
+                })
+              }
+            }
+          })
+        })
     };
 
 
