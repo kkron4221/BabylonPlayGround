@@ -24,6 +24,7 @@
     <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/cannon.js"></script>
 
   </head>
   <body>
@@ -122,7 +123,7 @@
         for (let i = -1; i < 2; ++i){
           positions.forEach((position, idx) => {
             const boxingSphere = BABYLON.MeshBuilder.CreateSphere('boxing_impostor', { diameter: 0.2 }, scene);
-            boxingSphere.position.copyForm(position);
+            boxingSphere.position.copyFrom(position);
             boxingSphere.position.x = i;
             boxingSphere.physicsImpostor = new BABYLON.PhysicsImpostor(boxingSphere, BABYLON.PhysicsImpostor.SphereImpostor, { mass: idx === 0 ? 0 : 1.1 + i }, scene);
             boxingArray[i + 1].push(boxingSphere);
@@ -169,7 +170,7 @@
 
               const ray = event.pickInfo.ray;
               ray.direction.scaleInPlace(0.2);
-              bullet.position.copyForm(ray.origin);
+              bullet.position.copyFrom(ray.origin);
               bullet.position.addInPlace(ray.direction);
               bullet.physicsImpostor = new BABYLON.PhysicsImpostor(bullet, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 3 });
               bullet.physicsImpostor.setLinearVelocity(ray.direction.scale(400));
@@ -216,7 +217,42 @@
                       const position = controller.grip ? controller.grip.position : controller.pointer.position;
 
                       let mesh = scene.meshUnderPointer;
-                      if 
+                      if (xr.pointerSelection.getMeshUnderPointer) {
+                        mesh = xr.pointerSelection.getMeshUnderPointer(controller.uniqueId);
+                      }
+                      if (mesh && mesh !== ground && mesh.physicsImpostor) {
+                        const animatable = BABYLON.Animation.CreateAndStartAnimation('meshmove',
+                          mesh, 'position', 30, 15, mesh.position.clone(),
+                          position.add(tmpRay.direction),
+                          BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+                          new BABYLON.BezierCurveEase(0.3, -0.75, 0.7, 1.6), () => {
+                            if (!mesh) return;
+                            meshesUnderPointer[controller.uniqueId] = mesh;
+                            observers[controller.uniqueId] = xr.baseExperience.sessionManager.onXRFrameObservable.add(() => {
+                              const delta = (xr.baseExperience.sessionManager.currentTimestamp = lastTimestamp);
+                              lastTimestamp = xr.baseExperience.sessionManager.currentTimestamp;
+                              controller.getWorldPointerRayToRef(tmpRay, true);
+                              tmpRay.direction.scaleInPlace(1.5);
+                              const position = controller.grip ? controller.grip.position : controller.pointer.position;
+                              tmpVec.copyFrom(position);
+                              tmpVec.addInPlace(tmpRay.direction);
+                              tmpVec.subtractToRef(oldPos, tmpVec);
+                              tmpVec.scaleInPlace(1000 / delta);
+                              meshesUnderPointer[controller.uniqueId].position.copyFrom(position);
+                              meshesUnderPointer[controller.uniqueId].position.addInPlace(tmpRay.direction);
+                              oldPos.copyFrom(meshesUnderPointer[controller.uniqueId].position);
+                              meshesUnderPointer[controller.uniqueId].physicsImpostor.setLinearVelocity(BABYLON.Vector3.Zero());
+                              meshesUnderPointer[controller.uniqueId].physicsImpostor.setAngularVelocity(BABYLON.Vector3.Zero());
+                            })
+                          });
+                      }
+                    }else{
+                      // throw the object
+                      if (observers[controller.uniqueId] && meshesUnderPointer[controller.uniqueId]){
+                        xr.baseExperience.sessionManager.onXRFrameObservable.remove(observers[controller.uniqueId]);
+                        observers[controller.uniqueId] = null;
+                        meshesUnderPointer[controller.uniqueId].physicsImpostor.setLinearVelocity(tmpVec);
+                      }
                     }
                   }
                 })
@@ -224,10 +260,18 @@
             }
           })
         })
-    };
+    
+        return scene;
+      };
 
+      (async () => {
+        const scene = await createScene();
+        engine.runRenderLoop(function () {
+          scene.render();
+        });
 
-        const scene = createScene();
+      })();
+
 
       engine.runRenderLoop(function () {
         scene.render();
