@@ -37,7 +37,7 @@
             const engine = new BABYLON.Engine(canvas, true, {
                 preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false
             });
-            const cretaScene = async function () {
+            const createScene = async function () {
                 const scene = new BABYLON.Scene(engine);
 
                 const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -10), scene);
@@ -71,7 +71,7 @@
                 return scene;
             };
 
-            cretaScene().then((scene) => {
+            createScene().then((scene) => {
                 engine.runRenderLoop(function () {
                     if (scene) {
                         scene.render();
