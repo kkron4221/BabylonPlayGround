@@ -118,6 +118,8 @@
     };
 
         const scene = createScene();
+        
+        globalThis.HK = await HavokPhysics();
 
       engine.runRenderLoop(function () {
         scene.render();

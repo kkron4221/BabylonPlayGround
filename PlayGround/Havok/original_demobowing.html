@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Babylon.js sample code</title>
+
+        <!-- Babylon.js -->
+        <script type="module">
+            import HavokPhysics from "https://cdn.babylonjs.com/havok/HavokPhysics_es.js";
+            let havokInstance;
+            HavokPhysics().then((havok) => {
+              // Havok is now available
+              havokInstance = havok;
+            });
+          
+            // later in code you can use havokInstance to initialize the plugin
+          </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://assets.babylonjs.com/generated/Assets.js"></script>
+        <script src="https://cdn.babylonjs.com/recast.js"></script>
+        <script src="https://cdn.babylonjs.com/ammo.js"></script>
+        <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+        <script src="https://cdn.babylonjs.com/cannon.js"></script>
+        <script src="https://cdn.babylonjs.com/Oimo.js"></script>
+        <script src="https://cdn.babylonjs.com/earcut.min.js"></script>
+        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://cdn.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://cdn.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+        <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+            
+            #canvasZone {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
+<body>
+    <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+
+        var startRenderLoop = function (engine, canvas) {
+            engine.runRenderLoop(function () {
+                if (sceneToRender && sceneToRender.activeCamera) {
+                    sceneToRender.render();
+                }
+            });
+        }
+
+        var engine = null;
+        var scene = null;
+        var sceneToRender = null;
+        var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
+        globalThis.HK = await HavokPhysics();
+
+        async function createScene() {
+  // generate your scene, do your magic!
+
+  // initialize the plugin using the HavokPlugin constructor
+  const havokInstance = await HavokPhysics();
+  const havokPlugin = new BABYLON.HavokPlugin(true, havokInstance);
+    // This creates a basic Babylon Scene object (non-mesh)
+    var scene = new BABYLON.Scene(engine);
+
+    // This creates and positions a free camera (non-mesh)
+    var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -10), scene);
+
+    // This targets the camera to scene origin
+    camera.setTarget(BABYLON.Vector3.Zero());
+
+    // This attaches the camera to the canvas
+    camera.attachControl(canvas, true);
+
+    // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
+    var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+
+    // Enable physics engine
+    var gravityVector = new BABYLON.Vector3(0, -9.81, 0);
+    var physicsPlugin = new BABYLON.HavokPlugin();
+    scene.enablePhysics(gravityVector, physicsPlugin);
+
+    // Default intensity is 1. Let's dim the light a small amount
+    light.intensity = 0.7;
+
+    // Create bowling lane
+    const lane = BABYLON.MeshBuilder.CreateGround("lane", { width: 6, height: 20 }, scene);
+    lane.position = new BABYLON.Vector3(0, 0, 4);
+    const laneAggregate = new BABYLON.PhysicsAggregate(lane, BABYLON.PhysicsShapeType.BOX, { mass: 0 }, scene);
+    
+    // Create bowling pins
+    async function createPins(scene) {
+        const result = await BABYLON.SceneLoader.ImportMeshAsync("", Assets.meshes.bowlingPinpin_glb.rootUrl, Assets.meshes.bowlingPinpin_glb.filename, scene);
+                const bowlingPin = result.meshes[1];
+                bowlingPin.scaling = new BABYLON.Vector3(0.3, 0.3, 0.3)
+                bowlingPin.setEnabled(false);
+
+            // Pin positions
+            pinPositions = [
+                new BABYLON.Vector3(0, 0, 5),
+                new BABYLON.Vector3(.5, 0, 6),
+                new BABYLON.Vector3(-.5, 0, 6),
+                new BABYLON.Vector3(0, 0, 7),
+                new BABYLON.Vector3(1, 0, 7),
+                new BABYLON.Vector3(-1, 0, 7),
+                new BABYLON.Vector3(-1.5, 0, 8),
+                new BABYLON.Vector3(-.5, 0, 8),
+                new BABYLON.Vector3(.5, 0, 8),
+                new BABYLON.Vector3(1.5, 0, 8)
+            ]
+
+            // Create instances of the bowling pin
+            return pinPositions.map(function (positionInSpace, idx) {
+                const pin = new BABYLON.InstancedMesh("pin-" + idx, bowlingPin);
+                pin.position = positionInSpace;
+                const pinAggregate = new BABYLON.PhysicsAggregate(pin, BABYLON.PhysicsShapeType.CONVEX_HULL, { mass: 1, restitution: 0.25 }, scene);
+                return pin;
+            });
+    }
+
+    createPins(scene);
+
+    // Create the bowling ball
+    async function createBall(scene) {
+        const result = await BABYLON.SceneLoader.ImportMeshAsync("", Assets.meshes.bowlingBall_glb.rootUrl, Assets.meshes.bowlingBall_glb.filename, scene);
+            const bowlingBall = result.meshes[1];
+            bowlingBall.scaling.scaleInPlace(0.2);
+            bowlingBall.position = new BABYLON.Vector3(0, 0.5, -5);
+            const ballAggregate = new BABYLON.PhysicsAggregate(bowlingBall, BABYLON.PhysicsShapeType.SPHERE, { mass: 1, restitution: 0.25 }, scene);
+            ballAggregate.body.disablePreStep = false;
+
+            // Create keyboard input
+            scene.onKeyboardObservable.add((kbInfo) => {
+                switch (kbInfo.type) {
+                    case BABYLON.KeyboardEventTypes.KEYDOWN:
+                        switch (kbInfo.event.key.toLowerCase()) {
+                            case "a":
+                                bowlingBall.position.x += 0.1;
+                                break
+                            case "d":
+                                bowlingBall.position.x -= 0.1;
+                                break
+                            case "w":
+                                ballAggregate.body.applyImpulse(new BABYLON.Vector3(0, 0, 20), bowlingBall.getAbsolutePosition());
+                                break;
+                        }
+                    }
+                });
+    }
+
+    createBall(scene);
+    
+    return scene;
+};
+                window.initFunction = async function() {
+                    
+                    
+                    
+                    var asyncEngineCreation = async function() {
+                        try {
+                        return createDefaultEngine();
+                        } catch(e) {
+                        console.log("the available createEngine function failed. Creating the default engine instead");
+                        return createDefaultEngine();
+                        }
+                    }
+
+                    window.engine = await asyncEngineCreation();
+        if (!engine) throw 'engine should not be null.';
+        startRenderLoop(engine, canvas);
+        window.scene = createScene();};
+        initFunction().then(() => {sceneToRender = scene                    
+        });
+
+        // Resize
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
