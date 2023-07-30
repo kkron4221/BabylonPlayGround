@@ -72,25 +72,37 @@
         console.log("myFullCurve.length()", myFullCurve.length())
 
         function oneAnimation(path, parentTube) {
-            const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 7.3 }, scene);
-            var sphereMat = new BABYLON.StandardMaterial("redMat", scene);
-            sphereMat.diffuseColor = new BABYLON.Color3(1, 0.03, 0.03);
-            sphere.material = sphereMat;
-            sphere.position = path[0];
+//            const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 7.3 }, scene);
+            // var sphereMat = new BABYLON.StandardMaterial("redMat", scene);
+            // sphereMat.diffuseColor = new BABYLON.Color3(1, 0.03, 0.03);
+            // sphere.material = sphereMat;
+            // sphere.position = path[0];
+            // sphere.setParent(parentTube);
 
-            sphere.setParent(parentTube);
+            // const box = BABYLON.MeshBuilder.CreateBox("box", { diameter: 7.3 }, scene);
+            const box = BABYLON.MeshBuilder.CreateBox("box", { width: 7.3, height: 7.3, depth: 7.3 }, scene);
+            var boxMat = new BABYLON.StandardMaterial("redMat", scene);
+            boxMat.diffuseColor = new BABYLON.Color3(1, 0.03, 0.03);
+            box.material = boxMat;
+            box.position = path[0];
+            box.setParent(parentTube);
+            
+
+
 
             let i = 0;
             console.log("oneAnimation:", path)
 
             scene.registerAfterRender(function(){
                 if(i < path.length-speed){
-                    sphere.position = path[i+=speed];
+                    // sphere.position = path[i+=speed];
+                    box.position = path[i+=speed];
                 }else{
                     i = 0;
                 }
             })
-            return sphere;
+            // return sphere;
+            return box;
         }
 
 
@@ -127,7 +139,7 @@
         oneAnimation(path, extruded);
 
         return scene;
-    };
+   };
 
         const scene = createScene();
 
