@@ -6,16 +6,6 @@
         <title>Babylon.js sample code</title>
 
         <!-- Babylon.js -->
-        <script type="module">
-            import HavokPhysics from "https://cdn.babylonjs.com/havok/HavokPhysics_es.js";
-            let havokInstance;
-            HavokPhysics().then((havok) => {
-              // Havok is now available
-              havokInstance = havok;
-            });
-          
-            // later in code you can use havokInstance to initialize the plugin
-          </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
         <script src="https://assets.babylonjs.com/generated/Assets.js"></script>
         <script src="https://cdn.babylonjs.com/recast.js"></script>
@@ -32,7 +22,6 @@
         <script src="https://cdn.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
         <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
         <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
-        <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
 
         <style>
             html, body {
@@ -72,14 +61,7 @@
         var scene = null;
         var sceneToRender = null;
         var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
-        globalThis.HK = await HavokPhysics();
-
-        async function createScene() {
-  // generate your scene, do your magic!
-
-  // initialize the plugin using the HavokPlugin constructor
-  const havokInstance = await HavokPhysics();
-  const havokPlugin = new BABYLON.HavokPlugin(true, havokInstance);
+        var createScene = function () {
     // This creates a basic Babylon Scene object (non-mesh)
     var scene = new BABYLON.Scene(engine);
 
@@ -174,7 +156,7 @@
 };
                 window.initFunction = async function() {
                     
-                    
+                    globalThis.HK = await HavokPhysics();
                     
                     var asyncEngineCreation = async function() {
                         try {

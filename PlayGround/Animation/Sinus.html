@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>https://playground.babylonjs.com/#00JR7Z#87</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+    function createScene() {
+        var scene = new BABYLON.Scene(engine);
+        scene.clearColor = new BABYLON.Color3(.5, .5, .5);
+
+        var camera = new BABYLON.ArcRotateCamera("camera1", 0, 0, 0, new BABYLON.Vector3(50, 10, -0), scene);
+        camera.setPosition(new BABYLON.Vector3(160, -50, -200));
+        camera.attachControl(canvas, true);
+
+        var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
+        light.intensity = 0.7;
+
+        var mySinus = [];
+        for (var i = 0; i < 180; i++) {
+            mySinus.push(new BABYLON.Vector3(i / 2, 10 * Math.sin(8 * i * Math.PI / 180), 0));
+        }
+        var mySinusCurve = new BABYLON.Curve3(mySinus);
+
+        var bezier3 = BABYLON.Curve3.CreateCubicBezier(
+            BABYLON.Vector3.Zero(),
+            new BABYLON.Vector3(30, 30, 40),
+            new BABYLON.Vector3(-60, 50, -40),
+            new BABYLON.Vector3(-30, 60, 30),
+            60);
+
+        var bezier2 = BABYLON.Curve3.CreateQuadraticBezier(
+            BABYLON.Vector3.Zero(),
+            new BABYLON.Vector3(50, 30, 10),
+            new BABYLON.Vector3(20, 50, 0),
+            25);
+
+        var myFullCurve = mySinusCurve.continue(bezier3).continue(bezier2);
+
+        var path = myFullCurve.getPoints();
+        console.log(path);
+        console.log("myFullCurve.length()", myFullCurve.length())
+
+        function oneAnimation(path, parentTube) {
+            const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 7.3 }, scene);
+            var sphereMat = new BABYLON.StandardMaterial("redMat", scene);
+            sphereMat.diffuseColor = new BABYLON.Color3(1, 0.03, 0.03);
+            sphere.material = sphereMat;
+            sphere.position = path[0];
+
+            sphere.setParent(parentTube);
+
+            let i = 0;
+            console.log("oneAnimation:", path)
+
+            scene.registerAfterRender(function(){
+                if(i < path.length-speed){
+                    sphere.position = path[i+=speed];
+                }else{
+                    i = 0;
+                }
+            })
+            return sphere;
+        }
+
+
+        let pathGroup = new BABYLON.Mesh("pathGroup");
+
+        var shape = [];
+        for (var theta = 0; theta < 2 * Math.PI; theta += Math.PI / 64) {
+            shape.push(new BABYLON.Vector3(2 * Math.cos(4 * theta) * Math.cos(theta), 2 * Math.cos(4 * theta) * Math.sin(theta), 0));
+        }
+
+        var extruded = BABYLON.MeshBuilder.ExtrudeShape("extrudedShape", { shape: shape, path: path, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+
+        extruded.parent = pathGroup;
+
+        var path3d = new BABYLON.Path3D(path);
+        var tangents = path3d.getTangents();
+        var normals = path3d.getNormals();
+        var binormals = path3d.getBinormals();
+        var curvePath = path3d.getCurve();
+
+        for(var p = 0; p < curvePath.length; p++) {
+            var tg = BABYLON.Mesh.CreateLines('tg', [ curvePath[p], curvePath[p].add(tangents[p])], scene, false);
+            tg.color = BABYLON.Color3.Red();
+            tg.parent = pathGroup;
+            var no = BABYLON.Mesh.CreateLines('no', [ curvePath[p], 10*curvePath[p].add(normals[p]*10)], scene, false);
+            no.color = BABYLON.Color3.Blue();
+            no.parent = pathGroup;
+            var bi = BABYLON.Mesh.CreateLines('bi', [curvePath[p], curvePath[p].add(binormals[p]*10)], scene, false);
+            bi.color = BABYLON.Color3.Green();
+            bi.parent = pathGroup;
+        }
+
+        const speed = 1;
+        oneAnimation(path, extruded);
+
+        return scene;
+    };
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
