@@ -79,9 +79,13 @@
             // sphere.position = path[0];
             // sphere.setParent(parentTube);
 
+            const material1 = new BABYLON.StandardMaterial("material1", scene);
+            material1.alpha = 0.2;
+
             const box = BABYLON.MeshBuilder.CreateBox("box", { size: 4 }, scene);
             box.position = path[0];
             box.setParent(parentTube);
+            box.material = material1;
             
             const corners = [ new BABYLON.Vector2(4, -4),
                     new BABYLON.Vector2(2, 0),
@@ -114,9 +118,10 @@
                 }
             });
 
-            
+            // box.removeChild(polygon);
 
-            //box.visibility = 0; 
+            // box.visibility = 0; 
+
 
             // return sphere;
             return polygon;
