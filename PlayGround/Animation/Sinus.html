@@ -72,23 +72,35 @@
         console.log("myFullCurve.length()", myFullCurve.length())
 
         function oneAnimation(path, parentTube) {
-//            const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 7.3 }, scene);
+            // const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 7.3 }, scene);
             // var sphereMat = new BABYLON.StandardMaterial("redMat", scene);
             // sphereMat.diffuseColor = new BABYLON.Color3(1, 0.03, 0.03);
             // sphere.material = sphereMat;
             // sphere.position = path[0];
             // sphere.setParent(parentTube);
 
-            // const box = BABYLON.MeshBuilder.CreateBox("box", { diameter: 7.3 }, scene);
-            const box = BABYLON.MeshBuilder.CreateBox("box", { width: 7.3, height: 7.3, depth: 7.3 }, scene);
-            var boxMat = new BABYLON.StandardMaterial("redMat", scene);
-            boxMat.diffuseColor = new BABYLON.Color3(1, 0.03, 0.03);
-            box.material = boxMat;
+            const box = BABYLON.MeshBuilder.CreateBox("box", { size: 4 }, scene);
             box.position = path[0];
             box.setParent(parentTube);
             
+            const corners = [ new BABYLON.Vector2(4, -4),
+                    new BABYLON.Vector2(2, 0),
+                    new BABYLON.Vector2(5, 2),
+                    new BABYLON.Vector2(1, 2),
+                    new BABYLON.Vector2(-5, 5),
+                    new BABYLON.Vector2(-3, 1),
+                    new BABYLON.Vector2(-4, -4),
+                    new BABYLON.Vector2(-2, -3),
+                    new BABYLON.Vector2(2, -3),
+              ];
 
+            const poly_tri = new BABYLON.PolygonMeshBuilder("polytri", corners);
+            const polygon = poly_tri.build();
+            polygon.position.y =+ 4;
 
+            polygon.setParent(box);
+
+           
 
             let i = 0;
             console.log("oneAnimation:", path)
@@ -100,9 +112,14 @@
                 }else{
                     i = 0;
                 }
-            })
+            });
+
+            
+
+            //box.visibility = 0; 
+
             // return sphere;
-            return box;
+            return polygon;
         }
 
 
