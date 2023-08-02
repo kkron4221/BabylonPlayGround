@@ -82,7 +82,8 @@
             const material1 = new BABYLON.StandardMaterial("material1", scene);
             material1.alpha = 0.2;
 
-            const box = BABYLON.MeshBuilder.CreateBox("box", { size: 4 }, scene);
+            // const box = BABYLON.MeshBuilder.CreateBox("box", { size: 4 }, scene);
+            const box = BABYLON.MeshBuilder.CreateBox("box", { size: 0.01 }, scene);
             box.position = path[0];
             box.setParent(parentTube);
             box.material = material1;
@@ -117,11 +118,6 @@
                     i = 0;
                 }
             });
-
-            // box.removeChild(polygon);
-
-            // box.visibility = 0; 
-
 
             // return sphere;
             return polygon;
