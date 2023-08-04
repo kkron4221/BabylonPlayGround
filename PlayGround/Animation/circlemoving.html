@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Particle Frame</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+    function createScene() {
+        const scene = new BABYLON.Scene(engine);
+        const camera = new BABYLON.ArcRotateCamera("camera", 2.1604, 1.2952, 10, new BABYLON.Vector3(0, 0, 0));
+        camera.attachControl(canvas, true);
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(-15, 12, 3));
+
+        // Create an instance of the AnimateBox class
+        const animateBox = new AnimateBox(scene, 111);
+        animateBox.initialize();
+
+        const sun = BABYLON.MeshBuilder.CreateSphere("sphere", {});
+
+
+        return scene;
+        
+    };
+
+    class AnimateBox {
+        constructor(scene, frameRate) {
+            this.frameRate = frameRate
+            this.scene = scene
+            this.box = new BABYLON.MeshBuilder.CreateBox("car", { size: .2 })
+            this.lines = null
+        }
+        initialize() {
+            this.createLines();
+            this.positionBox();
+            this.animateBox();
+        }
+        createLines() {
+            const myPoints = []
+            for (let i = 0; i <= 360; i++) {
+                myPoints.push(new BABYLON.Vector3(Math.sin(i / 180 * Math.PI), 0, Math.cos(i / 180 * Math.PI)))
+            }
+            this.lines = BABYLON.MeshBuilder.CreateLines("lines", { points: myPoints }, this.scene)
+        }
+        positionBox() {
+            this.box.position.x = 0.55;
+            this.box.position.y = 0;
+            this.box.position.z = 0.8;
+            this.box.rotation.y = 0.8;
+
+        }
+        animateBox() {
+            const animation = new BABYLON.Animation("animation", "rotation.y", this.frameRate, BABYLON.Animation.ANIMATIONTYPE_FLOAT, 0);
+            const animation2 = new BABYLON.Animation("animation2", "position", this.frameRate, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, 0);
+
+            const keyFrames = [];
+            keyFrames.push({
+                frame: 0,
+                value: 0,
+            });
+
+            keyFrames.push({
+                frame: 150,
+                value: 2 * Math.PI,
+            });
+
+            const keyFrames2 = [];
+            for (let i = 0; i <= 360; i++) {
+                keyFrames2.push({
+                    frame: i * 150 / 360,
+                    value: new BABYLON.Vector3(Math.sin(i / 180 * Math.PI), 0, Math.cos(i / 180 * Math.PI)),
+                });
+            }
+
+            animation.setKeys(keyFrames);
+            this.box.animations.push(animation);
+            animation2.setKeys(keyFrames2);
+            this.box.animations.push(animation2);
+
+            this.scene.beginAnimation(this.box, 0, 150, true);
+        }
+
+    }
+
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
