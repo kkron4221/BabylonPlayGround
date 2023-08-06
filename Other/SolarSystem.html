@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Particle Frame</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+    function createScene() {
+        const scene = new BABYLON.Scene(engine);
+        const camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 2.2, 30, BABYLON.Vector3.Zero(), scene);
+        camera.attachControl(canvas, true);
+
+        scene.clearColor = new BABYLON.Color3(0.0, 0.0, 0.0);
+
+        const light = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(1, 1, 0), scene);
+        light.intensity = 1.0;
+        
+        // Skybox
+        var cubeTexture = new BABYLON.CubeTexture(
+            "https://rawcdn.githack.com/mrdoob/three.js/d8b547a7c1535e9ff044d196b72043f5998091ee/examples/textures/cube/MilkyWay/",
+            scene,
+            ["dark-s_px.jpg", "dark-s_py.jpg", "dark-s_pz.jpg", "dark-s_nx.jpg", "dark-s_ny.jpg", "dark-s_nz.jpg"]
+        );
+        //scene.createDefaultSkybox(cubeTexture, true, 100);
+
+        // If you care about the performance of createDefaultSkybox(), The following code can be used to avoid this. However, the environmental texture will not be applied.
+        // http://www.html5gamedevs.com/topic/36997-using-skybox-takes-time-to-display-is-it-a-usage-problem/?tab=comments#comment-211765
+        var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size: 10000}, scene);
+        var skyboxMaterial = new BABYLON.StandardMaterial("skyBoxMaterial", scene);
+        skyboxMaterial.backFaceCulling = false;
+        skyboxMaterial.reflectionTexture = cubeTexture;
+        skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.disableLighting = true;
+        skybox.material = skyboxMaterial;
+        
+        BABYLON.ParticleHelper.CreateAsync("sun", scene).then((set) => {
+            set.systems[0].blendMode = BABYLON.ParticleSystem.BLENDMODE_MULTIPLYADD;
+            set.start();
+        });
+
+        const planetMeshes = [];
+        const planetMaterials = [];
+        /*
+            const distances = [2, 3, 4, 5, 7];
+            const diameters = [0.2, 0.3, 0.4, 0.5, 1];
+            const speeds = [0.03, 0.025, 0.02, 0.015, 0.01];
+            const NUM_OF_PLANETS = 5;
+        */
+        const solarSystemPlanets = [
+            {
+                "name": "Mercury",
+                "distance_from_sun": 0.39,
+                "diameter": 0.38,
+                "orbital_speed": 4.15,
+                "rotation_speed": 0.02,
+                "tilt": 0.01,
+                "color": [150/255, 149/255, 153/255],
+                "texture": "https://cx20.github.io/jsdo.it-archives/assets/u/r/e/y/ureyw.jpg"
+            },
+            {
+                "name": "Venus",
+                "distance_from_sun": 0.72,
+                "diameter": 0.95,
+                "orbital_speed": 1.62,
+                "rotation_speed": -0.004,
+                "tilt": 177.36,
+                "color": [235/255, 178/255, 115/255],
+                "texture": "https://cx20.github.io/jsdo.it-archives/assets/i/g/4/9/ig499.jpg"
+            },
+            {
+                "name": "Earth",
+                "distance_from_sun": 1,
+                "diameter": 1,
+                "orbital_speed": 1,
+                "rotation_speed": 1,
+                "tilt": 23.44,
+                "color": [33/255, 79/255, 99/255],
+                "texture": "https://cx20.github.io/jsdo.it-archives/assets/o/p/2/8/op288.jpg"
+            },
+            {
+                "name": "Mars",
+                "distance_from_sun": 1.52,
+                "diameter": 0.53,
+                "orbital_speed": 0.53,
+                "rotation_speed": 1.03,
+                "tilt": 25.19,
+                "color": [193/255, 68/255, 14/255],
+                "texture": "https://cx20.github.io/jsdo.it-archives/assets/w/x/n/n/wxnn6.jpg"
+            },
+            {
+                "name": "Jupiter",
+                "distance_from_sun": 5.20,
+                "diameter": 11.21,
+                "orbital_speed": 0.08,
+                "rotation_speed": 0.41,
+                "tilt": 3.13,
+                "color": [227/255, 173/255, 99/255],
+                "texture": "https://cx20.github.io/jsdo.it-archives/assets/k/o/0/w/ko0wu.jpg"
+            },
+            {
+                "name": "Saturn",
+                "distance_from_sun": 9.58,
+                "diameter": 9.45,
+                "orbital_speed": 0.03,
+                "rotation_speed": 0.45,
+                "tilt": 26.73,
+                "color": [229/255, 205/255, 164/255]
+            }
+        ];
+
+        const trailMeshes = [];
+
+        for (let i = 0; i < solarSystemPlanets.length; i++) {
+            const planet = solarSystemPlanets[i];
+            planetMaterials[i] = new BABYLON.StandardMaterial("planetMaterial", scene);
+            if (planet.texture != undefined) {
+                planetMaterials[i].diffuseTexture = new BABYLON.Texture(planet.texture);
+            } else {
+                planetMaterials[i].diffuseColor = new BABYLON.Color3(planet.color[0], planet.color[1], planet.color[2]);
+            }
+            planetMeshes[i] = BABYLON.MeshBuilder.CreateSphere(planet.name, { diameter: planet.diameter / 3}, scene);
+            planetMeshes[i].material = planetMaterials[i];
+            planetMeshes[i].renderingGroupId = 3;        // same renderingGroupId as sun
+            trailMeshes[i] = new BABYLON.TrailMesh(planet.name + "_trail", planetMeshes[i], scene, 0.02, 500, true);
+            trailMeshes[i].material = new BABYLON.StandardMaterial("trailMaterial", scene);
+            trailMeshes[i].material.diffuseColor = new BABYLON.Color3(planet.color[0], planet.color[1], planet.color[2]);
+            trailMeshes[i].renderingGroupId = 3;    // same renderingGroupId as sun
+        }
+
+        let angle = 0;
+
+        scene.registerBeforeRender(function () {
+            for (let i = 0; i < solarSystemPlanets.length; i++) {
+                const planet = solarSystemPlanets[i];
+                planetMeshes[i].position.x = planet.distance_from_sun * 10 * Math.sin(angle * planet.orbital_speed / 20);
+                planetMeshes[i].position.z = -planet.distance_from_sun * 10 * Math.cos(angle * planet.orbital_speed / 20);
+                planetMeshes[i].rotation.y = -angle * planet.rotation_speed;
+            }
+            angle += 0.1;
+        });
+
+        return scene;
+    };
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>

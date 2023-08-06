@@ -42,8 +42,11 @@
         const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(-15, 12, 3));
 
         // Create an instance of the AnimateBox class
-        const animateBox = new AnimateBox(scene, 111);
-        animateBox.initialize();
+        const animateBox = new AnimateBox(scene, 111, 0.5);
+        animateBox.initialize(1);
+
+        const earth = new AnimateBox(scene, 120, 0.3);
+        earth.initialize(2);
 
         const sun = BABYLON.MeshBuilder.CreateSphere("sphere", {});
 
@@ -53,30 +56,30 @@
     };
 
     class AnimateBox {
-        constructor(scene, frameRate) {
+        constructor(scene, frameRate, radius) {
             this.frameRate = frameRate
             this.scene = scene
             this.box = new BABYLON.MeshBuilder.CreateBox("car", { size: .2 })
             this.lines = null
+            this.radius = radius;
         }
-        initialize() {
+        initialize(position) {
             this.createLines();
-            this.positionBox();
+            this.positionBox(position);
             this.animateBox();
         }
         createLines() {
-            const myPoints = []
+            const myPoints = [];
             for (let i = 0; i <= 360; i++) {
-                myPoints.push(new BABYLON.Vector3(Math.sin(i / 180 * Math.PI), 0, Math.cos(i / 180 * Math.PI)))
+                myPoints.push(new BABYLON.Vector3(Math.sin(i / 180 * Math.PI), 0, Math.cos(i / 180 * Math.PI)));
             }
-            this.lines = BABYLON.MeshBuilder.CreateLines("lines", { points: myPoints }, this.scene)
+            this.lines = BABYLON.MeshBuilder.CreateLines("lines", { points: myPoints }, this.scene);
         }
-        positionBox() {
-            this.box.position.x = 0.55;
-            this.box.position.y = 0;
-            this.box.position.z = 0.8;
-            this.box.rotation.y = 0.8;
-
+        positionBox(position) {
+            this.box.position.x = Math.cos(position / 180 * Math.PI) * this.radius;
+            this.box.position.y = position * 0.8;
+            this.box.position.z = Math.sin(position / 180 * Math.PI) * this.radius;
+            this.box.rotation.y = position * 0.8;
         }
         animateBox() {
             const animation = new BABYLON.Animation("animation", "rotation.y", this.frameRate, BABYLON.Animation.ANIMATIONTYPE_FLOAT, 0);
@@ -105,7 +108,7 @@
             this.box.animations.push(animation);
             animation2.setKeys(keyFrames2);
             this.box.animations.push(animation2);
-
+ 
             this.scene.beginAnimation(this.box, 0, 150, true);
         }
 
