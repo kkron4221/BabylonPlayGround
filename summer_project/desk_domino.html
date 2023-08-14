@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Particle Frame</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+    function createScene() {
+
+        const BASE_URL = "https://rawcdn.githack.com/cx20/jsdo-static-contents/e3ee8c076b074cc79511f424c73b95671925c0c6/models/gltf/2.0/"
+        const SCALE = 1/50;
+
+        /*
+        const dataSet = [
+            {id: 'eraser01', x: -41, z:  138, rotate_y:  24},
+            {id: 'eraser02', x: -16, z:  143, rotate_y:   0},
+            {id: 'eraser03', x:   4, z:  143, rotate_y:   0},
+            {id: 'eraser04', x:  27, z:  141, rotate_y: 351},
+            {id: 'eraser05', x:  51, z:  131, rotate_y: 320},
+            {id: 'eraser06', x:  67, z:  109, rotate_y: 285},
+            {id: 'eraser07', x:  70, z:   83, rotate_y: 270},
+            {id: 'eraser08', x:  67, z:   60, rotate_y: 250},
+            {id: 'eraser09', x:  51, z:   35, rotate_y: 221},
+            {id: 'eraser10', x:  32, z:   14, rotate_y: 237},
+            {id: 'eraser11', x:  20, z:  -11, rotate_y: 267},
+            {id: 'eraser12', x:  25, z:  -38, rotate_y: 299},
+            {id: 'eraser13', x:  45, z:  -55, rotate_y: 338},
+            {id: 'eraser14', x:  70, z:  -59, rotate_y:   0},
+            {id: 'eraser15', x:  97, z:  -62, rotate_y: 334},
+            {id: 'eraser16', x: 119, z:  -76, rotate_y: 303},
+            {id: 'eraser17', x: 124, z: -104, rotate_y: 254},
+            {id: 'eraser18', x: 109, z: -128, rotate_y: 221},
+            {id: 'eraser19', x:  84, z: -136, rotate_y: 187},
+            {id: 'eraser20', x:  61, z: -136, rotate_y: 180},
+            {id: 'eraser21', x:  40, z: -137, rotate_y: 180},
+            {id: 'eraser22', x:  17, z: -136, rotate_y: 180},
+            {id: 'eraser23', x: -10, z: -136, rotate_y: 180},
+        ];
+        */
+        let dataSet = [];
+        for (let i = 0; i < 12; i++) {
+            let id = "eraser" + i;
+            let x = 650*i/24-610/2;
+            let z = 0;
+            let rotate_y = 0;
+            dataSet.push({id:id, x:x, z:z, rotate_y:rotate_y});
+        }
+            
+        const createScene = function () {
+            const scene = new BABYLON.Scene(engine);
+            const camera = new BABYLON.ArcRotateCamera("Camera", - Math.PI / 1.1, Math.PI / 4, 1500*SCALE, BABYLON.Vector3.Zero(), scene);
+
+            camera.setTarget(new BABYLON.Vector3(0, 700*SCALE, 0));
+            camera.attachControl(canvas, true);
+            camera.wheelDeltaPercentage = 0.005;
+
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, -1), scene);
+            light.intensity = 1.0;
+
+            scene.enablePhysics(new BABYLON.Vector3(0,-9.8,0), new BABYLON.HavokPlugin());
+
+            addGround(scene);
+
+            BABYLON.SceneLoader.ImportMesh("",  "", BASE_URL+"SchoolDesk/glTF-Binary/SchoolDesk.glb", scene, function (newMeshes) {
+                let root = newMeshes[0];
+                root.position.x = 0;
+
+                let mesh = null;
+                for (let i = 0; i < newMeshes.length; i++) {
+                    if (newMeshes[i].name === "desk_top") {
+                        mesh = newMeshes[i];
+                        break;
+                    }
+                }
+                
+                mesh.aggregate = new BABYLON.PhysicsAggregate(mesh, BABYLON.PhysicsShapeType.BOX, {mass: 0, friction: 0.5, restitution: 0.6}, scene);
+            });
+
+
+
+
+            BABYLON.SceneLoader.ImportMesh("",  "", BASE_URL+"Eraser/glTF-Binary/Eraser.glb", scene, function (newMeshes) {
+                let eraserMesh = scene.getMeshByName("eraser");
+                eraserMesh.scaling = new BABYLON.Vector3(-1, -1, 1);
+
+                const eraserBody = BABYLON.MeshBuilder.CreateBox("eraser_parent", {width: 50 * SCALE, height: 10 * SCALE, depth: 25 * SCALE}, scene);
+                eraserBody.isVisible = false;
+                eraserMesh.parent = eraserBody;
+
+                //loadEraser(deskNo, eraserMesh, eraserBody, dataSet, camera, scene)
+                loadEraser(0, eraserMesh, eraserBody, dataSet, camera, scene);
+
+        /*
+                eraserBody.position.x =  -67 * SCALE;
+                eraserBody.position.y =  735 * SCALE;
+                eraserBody.position.z = -130 * SCALE;
+                eraserBody.rotation.z = Math.PI * (90+180) / 180;
+        */
+                eraserBody.position.x = -315 * SCALE;
+                eraserBody.position.y =  800 * SCALE;
+                eraserBody.position.z =    0 * SCALE;
+                eraserBody.rotation.z = Math.PI * (90+180) / 180;
+
+                scene.onPointerDown = function castRay() {
+                    const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, BABYLON.Matrix.Identity(), camera, false);
+                    const hit = scene.pickWithRay(ray);
+
+                    if (hit.pickedMesh && hit.pickedMesh.id.startsWith("eraser")) {
+                        const eraser = hit.pickedMesh;
+                        const eraser_parent = eraser.parent;
+                        eraser_parent.rotation.z = Math.PI * (45+180) / 180;
+                        eraser_parent.aggregate = new BABYLON.PhysicsAggregate(eraser_parent, BABYLON.PhysicsShapeType.BOX, {mass: 1, friction: 0.5, restitution: 0.6}, scene);
+                    }
+                }
+
+            });
+
+            return scene;
+        };
+
+        function loadEraser(deskNo, eraserMesh, eraserBody, dataSet, camera, scene) {
+            for (let i = 0; i < dataSet.length; i++) {
+                let item = dataSet[i];
+                let clone = eraserMesh.clone(item.id);
+                let clone_parent = eraserBody.clone(item.id+"_parent");
+                clone_parent.isVisible = false;
+                clone.parent = clone_parent;
+
+                clone_parent.position.x = (650+10) * SCALE * deskNo + item.x * SCALE;
+                clone_parent.position.y = 770 * SCALE;
+                clone_parent.position.z = -item.z * SCALE;
+                clone_parent.rotation.z = -Math.PI / 2;
+                clone_parent.rotation.y = Math.PI * item.rotate_y / 180;
+                clone_parent.aggregate = new BABYLON.PhysicsAggregate(clone_parent, BABYLON.PhysicsShapeType.BOX, {mass: 1, friction: 0.5, restitution: 0.6}, scene);
+            }
+
+        }
+
+        function addGround(scene) {
+            const ground = BABYLON.MeshBuilder.CreateBox("ground", {width: 10000*SCALE, height: 10*SCALE, depth: 10000*SCALE}, scene);
+            ground.position.y = 0;
+
+            const groundMaterial = new BABYLON.GridMaterial("groundMaterial", scene);
+            groundMaterial.majorUnitFrequency = 5;
+            groundMaterial.minorUnitVisibility = 0.45;
+            groundMaterial.gridRatio = 0.5;
+            groundMaterial.mainColor = new BABYLON.Color3(0, 0.05, 0.2);
+            groundMaterial.lineColor = new BABYLON.Color3(0, 1.0, 1.0);	
+            groundMaterial.opacity = 0.98;
+
+            ground.material = groundMaterial;
+            ground.material.wireframe = false;
+        }
+
+    };
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>

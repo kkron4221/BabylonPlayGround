@@ -38,7 +38,78 @@
     function createScene() {
         const scene = new BABYLON.Scene(engine);
         const camera = new BABYLON.ArcRotateCamera("Camera", - Math.PI / 2, Math.PI / 4, 1500*SCALE, BABYLON.Vector3.Zero(), scene);
-        
+
+        camera.setTarget(new BABYLON.Vector3(0, 700*SCALE, 0));
+        camera.attachControl(canvas, true);
+        camera.wheelDeltaPercentage = 0.005;
+
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, -1), scene);
+        light.intensity = 1.0;
+
+        scene.enablePhysics(new BABYLON.Vector3(0, -9.8, 0), new BABYLON.HacokPlugin());
+
+        addDesk(scene);
+        addGround(scene);
+
+        let board = createBoard(scene);
+        board.position.y = 720*SCALE;
+        board.aggregate = new BABYLON.PhysicsAggregate(board, BABYLON.PhysicsShapeType.BOX, {mass: 0, friction: 0.5, restitution: 0.6}, scene);
+
+        let eraser = createEraser(scene);
+
+        const dataSet = [
+            {id: "eraser1", x: 12.9244140625, z: 131.334326171875, rotate_y: 24.0143},
+            {id: "eraser2", x: 51.09013671875, z: 139.42861328125, rotate_y: 0},
+            {id: "eraser3", x: 81.09013671875, z: 139.42861328125, rotate_y: 0},
+            {id: "eraser4", x: 114.75986328125, z: 136.774169921875, rotate_y: 351.2918},
+            {id: "eraser5", x: 151.257080078125, z: 121.29404296875, rotate_y: 320.3293},
+            {id: "eraser6", x: 174.9333984375, z: 88.3537841796875, rotate_y: 284.8541},
+            {id: "eraser7", x: 180.375830078125, z: 49.2857421875, rotate_y: 270},
+            {id: "eraser8", x: 175.35458984375, z: 14.5678466796875, rotate_y: 250.017},
+            {id: "eraser9", x: 151.718701171875, z: -23.1894287109375, rotate_y: 221.0124},
+            {id: "eraser10", x: 123.2283203125, z: -53.4099853515625, rotate_y: 236.5486},
+            {id: "eraser11", x: 104.615625, z: -92.1119995117188, rotate_y: 266.7582},
+            {id: "eraser12", x: 113.21767578125, z: -131.498083496094, rotate_y: 298.7226},
+            {id: "eraser13", x: 143.099267578125, z: -158.074230957031, rotate_y: 338.0647},
+            {id: "eraser14", x: 180, z: -163.714294433594, rotate_y: 0},
+            {id: "eraser15", x: 219.883544921875, z: -168.711120605469, rotate_y: 334.2014},
+            {id: "eraser16", x: 253.056005859375, z: -189.405981445313, rotate_y: 303.4365},
+            {id: "eraser17", x: 261.36376953125, z: -231.538739013672, rotate_y: 253.9053},
+            {id: "eraser18", x: 239.105810546875, z: -266.777040100098, rotate_y: 221.1066},
+            {id: "eraser19", x: 201.105810546875, z: -279.398551177979, rotate_y: 186.7112},
+            {id: "eraser20", x: 167.236767578125, z: -279.463968515396, rotate_y: 180},
+            {id: "eraser21", x: 134.85712890625, z: -280, rotate_y: 180},
+            {id: "eraser22", x: 100, z: -278.461322879791, rotate_y: 180},
+            {id: "eraser23", x: 60.285693359375, z: -278.461322879791, rotate_y: 180},
+        ];
+
+        for (let i = 0; i < dataSet.length; i++) {
+            let item = dataSet[i];
+            let clone = eraser.clone(item.id);
+            clone.position.x = (item.x/1.5-50) * SCALE;
+            clone.position.y = 770 * SCALE;
+            clone.position.z = (-item.z/1.5-50.0) * SCALE;
+            clone.rotation.z = -Math.PI / 2;
+            clone.rotation.z = Math.PI * item.rotate_y / 180;
+            clone.aggregate = new BABYLON.PhysicsAggregate(clone, BABYLON.PhysicsShapeType.BOX, {mass: 1, friction: 0.5, restitution: 0.6}, scene);
+        }
+
+        eraser.position.x = -70 * SCALE;
+        eraser.position.y = 770 * SCALE;
+        eraser.position.z = -130 * SCALE;
+        eraser.rotation.z = Math.PI * (90+180) / 180;
+
+        scene.onPointerDown = function castRay() {
+            const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, BABYLON.Matrix.Identity(), camera, false);
+            const hit = scene.pickWithRay(ray);
+
+            if(hit.pickedMesh && hit.pickedMesh.id.startsWith("eraser")){
+                const eraser = hit.pickedMesh;
+                eraser.rotation.z = Math.PI * (45+180) / 180;
+                eraser.aggregate = new BABYLON.PhysicsAggregate(eraser, BABYLON.PhysicsShapeType.BOX, {mass: 1, friction: 0.5, restitution: 0.6}, scene);
+            }
+        }
+        return scene;
     };
 
         const scene = createScene();
