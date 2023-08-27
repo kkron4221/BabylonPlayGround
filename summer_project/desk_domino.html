@@ -37,8 +37,15 @@
 
     function createScene() {
 
-        const BASE_URL = "https://rawcdn.githack.com/cx20/jsdo-static-contents/e3ee8c076b074cc79511f424c73b95671925c0c6/models/gltf/2.0/"
+        const scene = new BABYLON.Scene(engine);
+        var camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 3, 5, BABYLON.Vector3.Zero(), scene);
+        camera.attachControl(canvas, true);
         const SCALE = 1/50;
+
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, -1), scene);
+        light.intensity = 1.0;
+
+        const BASE_URL = "https://rawcdn.githack.com/cx20/jsdo-static-contents/e3ee8c076b074cc79511f424c73b95671925c0c6/models/gltf/2.0/"
 
         /*
         const dataSet = [
@@ -181,6 +188,8 @@
             ground.material = groundMaterial;
             ground.material.wireframe = false;
         }
+
+        return scene;
 
     };
 
