@@ -1,6 +1,51 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="Content-Type"
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Babylon.js using Havok</title>
+
+        <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+        <style>
+            html,
+            body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+
+            #canvasZone {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
     </head>
+    <body>
+        <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
+       <script>
+        BABYLON.SceneLoader.ImportMesh("", "", BASE_URL2+"slider_on_desk_limes_v9.glb", scene, function (newMeshes) {
+            for (let i = 0; i < newMeshes.length; i++) {
+                console.log(newMeshes[i].name);
+                if (newMeshes[i].name === "desk_top"){
+                    new BABYLON.PhysicsAggregate(newMeshes[i],
+                    BABYLON.PhysicsShapeType.BOX, {mass: 0, friction: 0.5, restitution: 0.6},
+                    scene);
+                }
+            }
+        })
+
+        
+       </script>
+    </body>
 </html>

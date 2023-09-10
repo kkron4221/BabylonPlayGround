@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Babylon.js using Havok</title>
+
+        <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+        
+
+        <style>
+            html,
+            body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+
+            #canvasZone {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
+       <script>
+            BABYLON.SceneLoader.ImportMesh("", "", BASE_URL2+"slider_on_desk_limes_v9.glb", scene, function (newMeshes) {
+                for (let i = 0; i < newMeshes.length; i++) {
+                    console.log(newMeshes[i].name);
+                    if (newMeshes[i].name === "desk_top"){
+                        new BABYLON.PhysicsAggregate(newMeshes[i],
+                        BABYLON.PhysicsShapeType.BOX, {mass: 0, friction: 0.5, restitution: 0.6},
+                        scene);
+                    }
+                }
+            })
+            const canvas = document.getElementById("renderCanvas");
+
+            const havok = await HavokPhysics({
+                locateFile: () => havokWasmUrl,
+            });
+
+            const engine = new BABYLON.Engine(canvas, true, {
+                preserveDrawingBuffer: true,
+                stencil: true,
+            });
+
+            const scene = new BABYLON.Scene(engine);
+
+            scene.enablePhysics(
+                new BABYLON.Vector3(0, -9.8, 0),
+                new BABYLON.HavokPlugin(true, havok)
+            );
+
+            const camera = new BABYLON.ArcRotateCamera(
+                "Camera",
+                (Math.PI * 60) / 180,
+                (Math.PI * 120) / 180,
+                -30,
+                BABYLON.Vector3.Zero(),
+                scene
+            );
+            camera.setTarget(BABYLON.Vector3.Zero());
+            camera.attachControl(canvas, true);
+
+            // ground
+            const ground = BABYLON.MeshBuilder.CreateGround(
+                "Ground",
+                { width: 30, height: 30 },
+                scene
+            );
+            const groundAggregate = new BABYLON.PhysicsAggregate(
+                ground,
+                BABYLON.PhysicsShapeType.BOX,
+                { mass: 0, friction: 10 },
+                scene
+            );
+
+            // light
+            const light = new BABYLON.HemisphericLight(
+                "light",
+                new BABYLON.Vector3(0, 100, 0),
+                scene
+            );
+
+            // create ball
+            const ballMaterial = new BABYLON.StandardMaterial("BallMaterial");
+            ballMaterial.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+            const ballMesh = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: 1.0 }, scene);
+            ballMesh.position = new BABYLON.Vector3(-5, 3, 0);
+            ballMesh.material = ballMaterial;
+            const ballPhysics = new BABYLON.PhysicsAggregate(
+                ballMesh,
+                BABYLON.PhysicsShapeType.SPHERE,
+                { mass: 1, friction: 10 },
+                scene
+            );
+
+            // create box
+            const boxMaterial = new BABYLON.StandardMaterial("BoxMaterial");
+            boxMaterial.diffuseTexture = new BABYLON.Texture("../assets/brick_wall.png");
+            const boxMesh = BABYLON.MeshBuilder.CreateBox(
+                "box",
+                { height: 1, width: 1, depth: 1 },
+                scene
+            );
+            boxMesh.position = new BABYLON.Vector3(0, 3, 0);
+            boxMesh.material = boxMaterial;
+            const boxPhysics = new BABYLON.PhysicsAggregate(
+                boxMesh,
+                BABYLON.PhysicsShapeType.BOX,
+                { mass: 1, friction: 10 },
+                scene
+            );
+
+            engine.runRenderLoop(function () {
+                scene.render();
+            });
+
+            setTimeout(() => {
+                ballPhysics.body.applyImpulse(new BABYLON.Vector3(30, 0, 0), ballMesh.position);
+            }, 3000);
+
+        
+       </script>
+    </body>
+</html>
